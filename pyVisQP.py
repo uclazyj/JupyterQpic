@@ -129,17 +129,18 @@ def makeplot(fileNameList,scaleList = [1],LineoutDir = None,Show_theory = None,D
     #####
     
     dataT = data.transpose()
-    # Make the beam propagates to the right
-    dataT = np.fliplr(dataT)
-    xi = xi[::-1]
-    
     colormap = 'viridis'
     
     def plot(colorBarRange,lineoutAxisRange,lineout_position):  
 
         fig, ax1 = plt.subplots(figsize=(8,5))
         # Zoom in / zoom out the plot
-        ax1.axis([ xi.max(), xi.min(),x.min()/2, x.max()/2])
+        
+        # The beam propagates to the left
+        ax1.axis([ xi.min(), xi.max(),x.min()/2, x.max()/2])
+        # The beam propagates to the right
+        # ax1.axis([ xi.max(), xi.min(),x.min()/2, x.max()/2])
+        
         ###
 
         ax1.set_title(figure_title)

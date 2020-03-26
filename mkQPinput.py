@@ -109,22 +109,22 @@ def makeWidgetsForInput():
     indzW = widgets.IntText(value=9, description='indz:', style=style, layout=layout)
 
 
-    n0W = widgets.FloatText(value=0.021, description='$n_0\;(10^{16}/cm^3)$:', style=style, layout=layout)
+    n0W = widgets.FloatText(value=3.5, description='$n_0\;(10^{16}/cm^3)$:', style=style, layout=layout)
     
-    boxXlengthW = widgets.FloatText(value=3670, description='boxXlength (Normalized/$\mu m$):', style=style, layout=layout)
-    boxYlengthW = widgets.FloatText(value=3670, description='boxYlength (Normalized/$\mu m$):', style=style, layout=layout)
-    boxZlengthW = widgets.FloatText(value=6500, description='boxZlength (Normalized/$\mu m$):', style=style, layout=layout)
+    boxXlengthW = widgets.FloatText(value=500, description='boxXlength (Normalized/$\mu m$):', style=style, layout=layout)
+    boxYlengthW = widgets.FloatText(value=500, description='boxYlength (Normalized/$\mu m$):', style=style, layout=layout)
+    boxZlengthW = widgets.FloatText(value=200, description='boxZlength (Normalized/$\mu m$):', style=style, layout=layout)
     
     # Driving beam
 
-    z_driverW = widgets.FloatText(value=2500, description='driver z position (Normalized/$\mu m$):', style=style, layout=layout)
+    z_driverW = widgets.FloatText(value=30, description='driver z position (Normalized/$\mu m$):', style=style, layout=layout)
 
-    sigma_x_driverW = widgets.FloatText(value=70, description='$\sigma_x$ (Normalized/$\mu m$):', style=style, layout=layout)
-    sigma_y_driverW = widgets.FloatText(value=70, description='$\sigma_y$ (Normalized/$\mu m$):', style=style, layout=layout)
-    sigma_z_driverW = widgets.FloatText(value=630, description='$\sigma_z$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_x_driverW = widgets.FloatText(value=10.25, description='$\sigma_x$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_y_driverW = widgets.FloatText(value=10.25, description='$\sigma_y$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_z_driverW = widgets.FloatText(value=6.4, description='$\sigma_z$ (Normalized/$\mu m$):', style=style, layout=layout)
     
-    gammaE_driverW = widgets.FloatText(value=60000, description='$\gamma$:', style=style, layout=layout)    
-    peak_density_driverW = widgets.FloatText(value=5.92, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
+    gammaE_driverW = widgets.FloatText(value=20000, description='$\gamma$:', style=style, layout=layout)    
+    peak_density_driverW = widgets.FloatText(value=1.6, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
 
     
     interact_calc(makeInput,units = unitsW,inputDeckTemplateName = inputDeckTemplateNameW,
