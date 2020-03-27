@@ -48,7 +48,7 @@ def makeplot(fileNameList,scaleList = [1],LineoutDir = None,Show_theory = None,D
     elif('Fields' in filename):
         colorBarDefaultRange = [-1,1]
         colorBarTotalRange = [-2,2]
-        lineoutAxisDefaultRange = [-0.5,0.5]
+        lineoutAxisDefaultRange = [-2,2]
         lineoutAxisTotalRange = [-3,3]
   
     for i in range(len(fileNameList)):
@@ -219,6 +219,49 @@ def makeplot(fileNameList,scaleList = [1],LineoutDir = None,Show_theory = None,D
                )
     return
 
+# direction is chosen from 'transverse' or 'longitudinal'
+# If 'transverse' is chosen, then 0 <= index < 2 ** indz
+# If 'longitudinal' is chosen, then 0 <= index < 2 ** indx
+# The return of the function are two 1D arrays. The first one is the axis, the second one is the lineout value
+def getLineout(filename,direction,index):
+    if(direction != 'transverse' and direction != 'longitudinal'):
+        print('Wrong lineout direction!')
+        return
+    f=h5py.File(filename,'r')
+    k=list(f.keys()) # k = ['AXIS', 'charge_slice_xz']
+    DATASET = f[k[1]]
+    data = np.array(DATASET)
+    
+    xRange=np.array(f['AXIS/AXIS1'])
+    xiRange=np.array(f['AXIS/AXIS2'])
+    
+    xLengthTotal = xRange[1] - xRange[0]
+    zLengthTotal = xiRange[1] - xiRange[0]
+    
+    xCellsTotal = data.shape[1]
+    zCellsTotal = data.shape[0]
+    
+    x=np.linspace(xRange[0],xRange[1],xCellsTotal)
+    xi=np.linspace(xiRange[0],xiRange[1],zCellsTotal)
+    
+    if(direction == 'transverse'):
+        if((index < 0) or (index >= zCellsTotal)):
+            print('Wrong index!')
+            return
+        else:
+            lineout = data[index,:]
+            lineout = np.stack((x,lineout),axis=0)
+            
+    if(direction == 'longitudinal'):
+        if((index < 0) or (index >= xCellsTotal)):
+            print('Wrong index!')
+            return
+        else:
+            lineout = data[:,index]
+            lineout = np.stack((xi,lineout),axis=0)
+    return lineout
+
+
 def Nd(x,y):
     if(len(x)!=len(y)):
         print('Length of x and y have to be the same!')
@@ -289,3 +332,4 @@ def getBubbleBoundary(filename,ionBubbleThreshold = -8e-2):
 
 # boundary = getBubbleBoundary()
 # ax1.plot(boundary[0],boundary[1],'k--',label='bubble boundary')
+
