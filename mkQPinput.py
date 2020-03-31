@@ -127,7 +127,7 @@ def makeWidgetsForInput():
     peak_density_driverW = widgets.FloatText(value=1.6, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
 
     
-    interact_calc(makeInput,units = unitsW,inputDeckTemplateName = inputDeckTemplateNameW,
+    interact_calc(makeInput,inputDeckTemplateName = inputDeckTemplateNameW,units = unitsW,
                   indx = indxW,indz=indzW,n0 = n0W,
                   boxXlength=boxXlengthW,boxYlength=boxYlengthW,boxZlength=boxZlengthW,
                   z_driver = z_driverW,
