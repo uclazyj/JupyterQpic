@@ -26,6 +26,10 @@ def makeInput(inputDeckTemplateName,units,
                  sigma_x_driver,sigma_y_driver,sigma_z_driver,
                  gammaE_driver,
                  peak_density_driver,
+                 z_witness,
+                 sigma_x_witness,sigma_y_witness,sigma_z_witness,
+                 gammaE_witness,
+                 peak_density_witness,
                  ): 
     
     # Convert all the quantities from SI units to normalized units (except the peak densities, which are ready to use)
@@ -47,18 +51,32 @@ def makeInput(inputDeckTemplateName,units,
     if(units == 'Experimental'):
         boxXlength = boxXlength / 1e6 * kp
         boxZlength = boxZlength / 1e6 * kp
+        
         z_driver = z_driver / 1e6 * kp 
         
-        sigma_x_driver = sigma_x_driver / 1e6
-        sigma_y_driver = sigma_y_driver / 1e6
-        sigma_z_driver = sigma_z_driver / 1e6
-             
+        sigma_x_driver /= 1e6
+        sigma_y_driver /= 1e6
+        sigma_z_driver /= 1e6
+  
         # The peak_densities are actually Q 
         peak_density_driver = peak_density_driver/1e9/e/sqrt((2*pi)**3) / sigma_x_driver / sigma_y_driver / sigma_z_driver / (n0 * 1e22)
         
-        sigma_x_driver = sigma_x_driver * kp
-        sigma_y_driver = sigma_y_driver * kp
-        sigma_z_driver = sigma_z_driver * kp
+        sigma_x_driver *= kp
+        sigma_y_driver *= kp
+        sigma_z_driver *= kp
+        
+        z_witness = z_witness / 1e6 * kp 
+        
+        sigma_x_witness /= 1e6
+        sigma_y_witness /= 1e6
+        sigma_z_witness /= 1e6
+        
+        # The peak_densities are actually Q 
+        peak_density_witness = peak_density_witness/1e9/e/sqrt((2*pi)**3) / sigma_x_witness / sigma_y_witness / sigma_z_witness / (n0 * 1e22)
+        
+        sigma_x_witness *= kp
+        sigma_y_witness *= kp
+        sigma_z_witness *= kp
     
     
     inputDeck['simulation']['box']['x'][0] = - boxXlength / 2
@@ -72,6 +90,12 @@ def makeInput(inputDeckTemplateName,units,
     
     inputDeck['beam'][0]['center'][2] = z_driver
     inputDeck['beam'][0]['sigma'] = [sigma_x_driver, sigma_y_driver, sigma_z_driver]
+    
+    inputDeck['beam'][1]['gamma'] = gammaE_witness
+    inputDeck['beam'][1]['peak_density'] = peak_density_witness
+    
+    inputDeck['beam'][1]['center'][2] = z_witness
+    inputDeck['beam'][1]['sigma'] = [sigma_x_witness, sigma_y_witness, sigma_z_witness]
 
     
     ################# Diagnostic #################
@@ -81,14 +105,17 @@ def makeInput(inputDeckTemplateName,units,
     xySlicePosition = 2 ** (indx - 2) * 3
     # 2D xz slice position
     inputDeck['beam'][0]['diag'][1]['slice'][0][1] = xzSlicePosition
+    inputDeck['beam'][1]['diag'][1]['slice'][0][1] = xzSlicePosition
     inputDeck['species'][0]['diag'][1]['slice'][0][1] = xzSlicePosition
     inputDeck['field']['diag'][1]['slice'][0][1] = xzSlicePosition
     # 2D yz slice position
     inputDeck['beam'][0]['diag'][1]['slice'][1][1] = yzSlicePosition
+    inputDeck['beam'][1]['diag'][1]['slice'][1][1] = yzSlicePosition
     inputDeck['species'][0]['diag'][1]['slice'][1][1] = yzSlicePosition
     inputDeck['field']['diag'][1]['slice'][1][1] = yzSlicePosition
     # 2D xy slice position
     inputDeck['beam'][0]['diag'][1]['slice'][2][1] = xySlicePosition
+    inputDeck['beam'][1]['diag'][1]['slice'][2][1] = xySlicePosition
     inputDeck['species'][0]['diag'][1]['slice'][2][1] = xySlicePosition
     inputDeck['field']['diag'][1]['slice'][2][1] = xySlicePosition
 
@@ -125,6 +152,17 @@ def makeWidgetsForInput():
     
     gammaE_driverW = widgets.FloatText(value=20000, description='$\gamma$:', style=style, layout=layout)    
     peak_density_driverW = widgets.FloatText(value=1.6, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
+    
+    # Witness beam
+
+    z_witnessW = widgets.FloatText(value=30, description='witness z position (Normalized/$\mu m$):', style=style, layout=layout)
+
+    sigma_x_witnessW = widgets.FloatText(value=10.25, description='$\sigma_x$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_y_witnessW = widgets.FloatText(value=10.25, description='$\sigma_y$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_z_witnessW = widgets.FloatText(value=6.4, description='$\sigma_z$ (Normalized/$\mu m$):', style=style, layout=layout)
+    
+    gammaE_witnessW = widgets.FloatText(value=20000, description='$\gamma$:', style=style, layout=layout)    
+    peak_density_witnessW = widgets.FloatText(value=1.6, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
 
     
     interact_calc(makeInput,inputDeckTemplateName = inputDeckTemplateNameW,units = unitsW,
@@ -133,5 +171,9 @@ def makeWidgetsForInput():
                   z_driver = z_driverW,
                   sigma_x_driver = sigma_x_driverW,sigma_y_driver = sigma_y_driverW,sigma_z_driver = sigma_z_driverW,  
                   gammaE_driver = gammaE_driverW,
-                  peak_density_driver = peak_density_driverW
+                  peak_density_driver = peak_density_driverW,
+                  z_witness = z_witnessW,
+                  sigma_x_witness = sigma_x_witnessW,sigma_y_witness = sigma_y_witnessW,sigma_z_witness = sigma_z_witnessW,  
+                  gammaE_witness = gammaE_witnessW,
+                  peak_density_witness = peak_density_witnessW
                  );
