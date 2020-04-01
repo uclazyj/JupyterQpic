@@ -167,17 +167,17 @@ def makeWidgetsForInput():
     plasmaDataFileW = widgets.Text(value='plasma.txt', description='Plasma Data File:',style=style,layout=layout)
     zDataFileW = widgets.Text(value='z.txt', description='z Data File (Normalized/$\mu$m):',style=style,layout=layout)
     
-    indxW = widgets.IntText(value=8, description='indx (indy):', style=style, layout=layout)
-    indzW = widgets.IntText(value=8, description='indz:', style=style, layout=layout)
+    indxW = widgets.IntText(value=9, description='indx (indy):', style=style, layout=layout)
+    indzW = widgets.IntText(value=9, description='indz:', style=style, layout=layout)
 
 
-    n0W = widgets.FloatText(value=4, description='$n_0\;(10^{16}/cm^3)$:', style=style, layout=layout)
+    n0W = widgets.FloatText(value=3.5, description='$n_0\;(10^{16}/cm^3)$:', style=style, layout=layout)
 
     dtW = widgets.IntText(value=10, description='dt:', style=style, layout=layout)
     #nbeamsW = widgets.IntText(value=2, description='nbeams:', style=style, layout=layout)
     nbeamsW = widgets.IntSlider(value=2,min=1,max=2,step=1, description='number of beams:',style=style, layout=layout)
-    timeW = widgets.FloatText(value=11, description='time:', style=style, layout=layout)
-    ndump2DW = widgets.IntText(value=1, description='dump the data every ? time steps:', style=style, layout=layout)
+    timeW = widgets.FloatText(value=10540, description='time:', style=style, layout=layout)
+    ndump2DW = widgets.IntText(value=20, description='dump the data every ? time steps:', style=style, layout=layout)
     
     boxXlengthW = widgets.FloatText(value=500, description='boxXlength (Normalized/$\mu$m):', style=style, layout=layout)
     boxYlengthW = widgets.FloatText(value=500, description='boxYlength (Normalized/$\mu$m):', style=style, layout=layout)
@@ -187,9 +187,9 @@ def makeWidgetsForInput():
 
     z_driverW = widgets.FloatText(value=30, description='driver z position (Normalized/$\mu$m):', style=style, layout=layout)
 
-    sigma_x_driverW = widgets.FloatText(value=1.63, description='$\sigma_x$(Normalized/$\mu$m) (driver):', style=style, layout=layout)
-    sigma_y_driverW = widgets.FloatText(value=1.63, description='$\sigma_y$(Normalized/$\mu$m) (driver):', style=style, layout=layout)
-    sigma_z_driverW = widgets.FloatText(value=7, description='$\sigma_z$(Normalized/$\mu$m) (driver):', style=style, layout=layout)
+    sigma_x_driverW = widgets.FloatText(value=10.25, description='$\sigma_x$(Normalized/$\mu$m) (driver):', style=style, layout=layout)
+    sigma_y_driverW = widgets.FloatText(value=10.25, description='$\sigma_y$(Normalized/$\mu$m) (driver):', style=style, layout=layout)
+    sigma_z_driverW = widgets.FloatText(value=6.4, description='$\sigma_z$(Normalized/$\mu$m) (driver):', style=style, layout=layout)
     
     sigma_vx_driverW = widgets.FloatText(value=0, description='$\sigma_{px}$ (driver):', style=style, layout=layout)
     sigma_vy_driverW = widgets.FloatText(value=0, description='$\sigma_{py}$ (driver):', style=style, layout=layout)
@@ -202,12 +202,12 @@ def makeWidgetsForInput():
 
     z_witnessW = widgets.FloatText(value=180, description='witness z position (Normalized/$\mu$m):', style=style, layout=layout)
 
-    sigma_x_witnessW = widgets.FloatText(value=1.63, description='$\sigma_x$(Normalized/$\mu$m) (witness):', style=style, layout=layout)
-    sigma_y_witnessW = widgets.FloatText(value=1.63, description='$\sigma_y$(Normalized/$\mu$m) (witness):', style=style, layout=layout)
+    sigma_x_witnessW = widgets.FloatText(value=0.9468, description='$\sigma_x$(Normalized/$\mu$m) (witness):', style=style, layout=layout)
+    sigma_y_witnessW = widgets.FloatText(value=0.9468, description='$\sigma_y$(Normalized/$\mu$m) (witness):', style=style, layout=layout)
     sigma_z_witnessW = widgets.FloatText(value=5, description='$\sigma_z$(Normalized/$\mu$m) (witness):', style=style, layout=layout)
     
-    sigma_vx_witnessW = widgets.FloatText(value=6.135, description='$\sigma_{px}$ (witness):', style=style, layout=layout)
-    sigma_vy_witnessW = widgets.FloatText(value=6.135, description='$\sigma_{py}$ (witness):', style=style, layout=layout)
+    sigma_vx_witnessW = widgets.FloatText(value=3.327, description='$\sigma_{px}$ (witness):', style=style, layout=layout)
+    sigma_vy_witnessW = widgets.FloatText(value=3.327, description='$\sigma_{py}$ (witness):', style=style, layout=layout)
     
     gammaE_witnessW = widgets.FloatText(value=20000, description='$\gamma$ (witness):', style=style, layout=layout)    
     energySpread_witnessW = widgets.FloatText(value=0.25, description='$\Delta \gamma /\gamma$ (%) (witness):', style=style, layout=layout)

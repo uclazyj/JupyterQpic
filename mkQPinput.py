@@ -99,7 +99,7 @@ def makeInput(inputDeckTemplateName,units,
     
     inputDeck['beam'][1]['center'][2] = z_witness
     inputDeck['beam'][1]['sigma'] = [sigma_r_witness, sigma_r_witness, sigma_z_witness]
-    inputDeck['beam'][1]['sigma_v'] = [epsilon_n_witness/sigma_r_witness, epsilon_n_witness/sigma_r_witness, energy_spread_witness * gammaE_witness]
+    inputDeck['beam'][1]['sigma_v'] = [epsilon_n_witness/sigma_r_witness, epsilon_n_witness/sigma_r_witness, energy_spread_witness * gammaE_witness/100]
 
     
     ################# Diagnostic #################
@@ -163,12 +163,12 @@ def makeWidgetsForInput():
     # Witness beam
     z_witnessW = widgets.FloatText(value=180, description='witness z position (Normalized/$\mu m$):', style=style, layout=layout)
 
-    sigma_r_witnessW = widgets.FloatText(value=2.5, description='$\sigma_r$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_r_witnessW = widgets.FloatText(value=0.9468, description='$\sigma_r$ (Normalized/$\mu m$):', style=style, layout=layout)
     epsilon_n_witnessW = widgets.FloatText(value=3.15, description='$\epsilon_n$ (Normalized/$\mu m$):', style=style, layout=layout)
     sigma_z_witnessW = widgets.FloatText(value=5, description='$\sigma_z$ (Normalized/$\mu m$):', style=style, layout=layout)
 
     gammaE_witnessW = widgets.FloatText(value=20000, description='$\gamma$:', style=style, layout=layout)    
-    energy_spread_witnessW = widgets.FloatText(value=0.0025, description='$\Delta \gamma / \gamma$:', style=style, layout=layout) 
+    energy_spread_witnessW = widgets.FloatText(value=0.25, description='$\Delta \gamma /\gamma$ (%):', style=style, layout=layout) 
     peak_density_witnessW = widgets.FloatText(value=0.5, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
 
     
