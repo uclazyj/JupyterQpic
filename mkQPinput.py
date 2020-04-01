@@ -20,15 +20,15 @@ e = 1.6e-19
 epsilon0 = 8.85e-12
 
 def makeInput(inputDeckTemplateName,units,
-                 indx,indz,n0,
+                 indx,indz,n0,time,dt,nbeams,
                  boxXlength,boxYlength,boxZlength,
                  z_driver,
                  sigma_x_driver,sigma_y_driver,sigma_z_driver,
                  gammaE_driver,
                  peak_density_driver,
                  z_witness,
-                 sigma_x_witness,sigma_y_witness,sigma_z_witness,
-                 gammaE_witness,
+                 sigma_r_witness,epsilon_n_witness,sigma_z_witness,
+                 gammaE_witness,energy_spread_witness,
                  peak_density_witness,
                  ): 
     
@@ -47,6 +47,9 @@ def makeInput(inputDeckTemplateName,units,
     inputDeck['simulation']['indy'] = indx
     inputDeck['simulation']['indz'] = indz
     inputDeck['simulation']['n0'] = n0 * 1e16
+    inputDeck['simulation']['time'] = time
+    inputDeck['simulation']['dt'] = dt
+    inputDeck['simulation']['nbeams'] = nbeams
     
     if(units == 'Experimental'):
         boxXlength = boxXlength / 1e6 * kp
@@ -67,16 +70,16 @@ def makeInput(inputDeckTemplateName,units,
         
         z_witness = z_witness / 1e6 * kp 
         
-        sigma_x_witness /= 1e6
-        sigma_y_witness /= 1e6
+        sigma_r_witness /= 1e6
         sigma_z_witness /= 1e6
         
         # The peak_densities are actually Q 
-        peak_density_witness = peak_density_witness/1e9/e/sqrt((2*pi)**3) / sigma_x_witness / sigma_y_witness / sigma_z_witness / (n0 * 1e22)
+        peak_density_witness = peak_density_witness/1e9/e/sqrt((2*pi)**3) / sigma_r_witness / sigma_r_witness / sigma_z_witness / (n0 * 1e22)
         
-        sigma_x_witness *= kp
-        sigma_y_witness *= kp
+        sigma_r_witness *= kp
         sigma_z_witness *= kp
+        
+        epsilon_n_witness = epsilon_n_witness / 1e6 * kp 
     
     
     inputDeck['simulation']['box']['x'][0] = - boxXlength / 2
@@ -95,7 +98,8 @@ def makeInput(inputDeckTemplateName,units,
     inputDeck['beam'][1]['peak_density'] = peak_density_witness
     
     inputDeck['beam'][1]['center'][2] = z_witness
-    inputDeck['beam'][1]['sigma'] = [sigma_x_witness, sigma_y_witness, sigma_z_witness]
+    inputDeck['beam'][1]['sigma'] = [sigma_r_witness, sigma_r_witness, sigma_z_witness]
+    inputDeck['beam'][1]['sigma_v'] = [epsilon_n_witness/sigma_r_witness, epsilon_n_witness/sigma_r_witness, energy_spread_witness * gammaE_witness]
 
     
     ################# Diagnostic #################
@@ -137,6 +141,9 @@ def makeWidgetsForInput():
 
 
     n0W = widgets.FloatText(value=3.5, description='$n_0\;(10^{16}/cm^3)$:', style=style, layout=layout)
+    timeW = widgets.IntText(value=2, description='time:', style=style, layout=layout)
+    dtW = widgets.IntText(value=1, description='dt:', style=style, layout=layout)
+    nbeamsW = widgets.IntText(value=2, description='nbeams:', style=style, layout=layout)
     
     boxXlengthW = widgets.FloatText(value=500, description='boxXlength (Normalized/$\mu m$):', style=style, layout=layout)
     boxYlengthW = widgets.FloatText(value=500, description='boxYlength (Normalized/$\mu m$):', style=style, layout=layout)
@@ -154,26 +161,26 @@ def makeWidgetsForInput():
     peak_density_driverW = widgets.FloatText(value=1.6, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
     
     # Witness beam
+    z_witnessW = widgets.FloatText(value=180, description='witness z position (Normalized/$\mu m$):', style=style, layout=layout)
 
-    z_witnessW = widgets.FloatText(value=30, description='witness z position (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_r_witnessW = widgets.FloatText(value=2.5, description='$\sigma_r$ (Normalized/$\mu m$):', style=style, layout=layout)
+    epsilon_n_witnessW = widgets.FloatText(value=3.15, description='$\epsilon_n$ (Normalized/$\mu m$):', style=style, layout=layout)
+    sigma_z_witnessW = widgets.FloatText(value=5, description='$\sigma_z$ (Normalized/$\mu m$):', style=style, layout=layout)
 
-    sigma_x_witnessW = widgets.FloatText(value=10.25, description='$\sigma_x$ (Normalized/$\mu m$):', style=style, layout=layout)
-    sigma_y_witnessW = widgets.FloatText(value=10.25, description='$\sigma_y$ (Normalized/$\mu m$):', style=style, layout=layout)
-    sigma_z_witnessW = widgets.FloatText(value=6.4, description='$\sigma_z$ (Normalized/$\mu m$):', style=style, layout=layout)
-    
     gammaE_witnessW = widgets.FloatText(value=20000, description='$\gamma$:', style=style, layout=layout)    
-    peak_density_witnessW = widgets.FloatText(value=1.6, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
+    energy_spread_witnessW = widgets.FloatText(value=0.0025, description='$\Delta \gamma / \gamma$:', style=style, layout=layout) 
+    peak_density_witnessW = widgets.FloatText(value=0.5, description='$n_{peak}$ (Normalized) or $Q_{total}(nC)$:', style=style, layout=layout)
 
     
     interact_calc(makeInput,inputDeckTemplateName = inputDeckTemplateNameW,units = unitsW,
-                  indx = indxW,indz=indzW,n0 = n0W,
+                  indx = indxW,indz=indzW,n0 = n0W,time = timeW,dt = dtW,nbeams = nbeamsW,
                   boxXlength=boxXlengthW,boxYlength=boxYlengthW,boxZlength=boxZlengthW,
                   z_driver = z_driverW,
                   sigma_x_driver = sigma_x_driverW,sigma_y_driver = sigma_y_driverW,sigma_z_driver = sigma_z_driverW,  
                   gammaE_driver = gammaE_driverW,
                   peak_density_driver = peak_density_driverW,
                   z_witness = z_witnessW,
-                  sigma_x_witness = sigma_x_witnessW,sigma_y_witness = sigma_y_witnessW,sigma_z_witness = sigma_z_witnessW,  
-                  gammaE_witness = gammaE_witnessW,
+                  sigma_r_witness = sigma_r_witnessW,epsilon_n_witness = epsilon_n_witnessW,sigma_z_witness = sigma_z_witnessW,  
+                  gammaE_witness = gammaE_witnessW,energy_spread_witness = energy_spread_witnessW,
                   peak_density_witness = peak_density_witnessW
                  );
