@@ -173,7 +173,10 @@ def makeplot(fileNameList,scaleList = [1],LineoutDir = None,Show_theory = None,D
             ax2.tick_params('y', colors='r')
         elif(LineoutDir == 'transverse'):
             ax2 = ax1.twiny()
-            lineout_index = int (lineout_position * zCellsPerUnitLength) 
+            lineout_index = int ((lineout_position - xiRange[0] ) * zCellsPerUnitLength) 
+            # prevent the user from selecting the last lineout position
+            # which causes the index to be equal to the length of the array
+            lineout_index = min(lineout_index,dataT.shape[1]-1)
             lineout = dataT[:,lineout_index]
             ax2.plot(lineout, x, 'r')
             
