@@ -341,38 +341,36 @@ def getBubbleBoundary(filename,ionBubbleThreshold = -8e-2):
 
 
 ###################### plot emittance for witness beam
-def analyzeWitnessRawData(zVisualizeCenter,halfThickness,en,e,a,b,sig,energy,energySpread):
+# Normally, number = 1: drive beam; number = 2: witness beam
+def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, halfThickness = 5):
     
-    with open('../qpinput.json') as f:
-        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    with open('../qpinput.json') as finput:
+        inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
     
     nbeams = inputDeck['simulation']['nbeams']
-    if(nbeams == 1):
+    if(beam_number > nbeams):
         return
+    idx = int(beam_number-1)
     dt = inputDeck['simulation']['dt']
-    time = inputDeck['simulation']['time']
-    NtimeSteps = int(time/dt)
-    ndump2D = inputDeck['beam'][1]['diag'][1]['ndump']
+    zWitnessCenter = inputDeck['beam'][idx]['center'][2]
+#     gamma = inputDeck['beam'][1]['gamma']
     
-    zWitnessCenter = inputDeck['beam'][1]['center'][2]
-    gamma = inputDeck['beam'][1]['gamma']
-    
-    profile = inputDeck['beam'][1]['profile']
+    profile = inputDeck['beam'][idx]['profile']
     if(profile == 0):
-        sigmaz= inputDeck['beam'][1]['sigma'][2]
-        sigma = inputDeck['beam'][1]['sigma'][0]
-        sigma_p = inputDeck['beam'][1]['sigma_v'][0]
-        emitn_i = sigma * sigma_p
-        alpha_i = 0
-        beta_i = sigma ** 2 / (emitn_i / gamma)
-        energySpread = inputDeck['beam'][1]['sigma_v'][2] / gamma
+        sigmaz= inputDeck['beam'][idx]['sigma'][2]
+#         sigma = inputDeck['beam'][1]['sigma'][0]
+#         sigma_p = inputDeck['beam'][1]['sigma_v'][0]
+#         emitn_i = sigma * sigma_p
+#         alpha_i = 0
+#         beta_i = sigma ** 2 / (emitn_i / gamma)
+#         energySpread = inputDeck['beam'][1]['sigma_v'][2] / gamma
     elif(profile == 2):
-        sigmaz= inputDeck['beam'][1]['sigmaz']  
-        emitn_i = inputDeck['beam'][1]['emittance'][0]
-        alpha_i = inputDeck['beam'][1]['alpha'][0]
-        beta_i = inputDeck['beam'][1]['beta'][0]
-        energySpread = inputDeck['beam'][1]['sigma_vz'] / gamma
-        
+        sigmaz= inputDeck['beam'][idx]['sigmaz']  
+#         emitn_i = inputDeck['beam'][1]['emittance'][0]
+#         alpha_i = inputDeck['beam'][1]['alpha'][0]
+#         beta_i = inputDeck['beam'][1]['beta'][0]
+#         energySpread = inputDeck['beam'][1]['sigma_vz'] / gamma
+    
     zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigmaz + halfThickness * sigmaz
     zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigmaz - halfThickness * sigmaz
 
@@ -389,19 +387,17 @@ def analyzeWitnessRawData(zVisualizeCenter,halfThickness,en,e,a,b,sig,energy,ene
     sigma_x_z = np.array([])
     sigma_y_z = np.array([])
 
-    timeSteps = range(0,NtimeSteps,ndump2D)
+    timeSteps = range(first_file_number,last_file_number,ndump)
+    s = np.array([i * dt for i in timeSteps])
     
-    # Calculate the theoretical emittance growth
-    gamma_i = (1 + alpha_i ** 2) / beta_i
-    beta_m = np.sqrt(2 * gamma) # normalized unit
-    A = (gamma_i * beta_m + beta_i / beta_m )/2
+#     # Calculate the theoretical emittance growth
+#     gamma_i = (1 + alpha_i ** 2) / beta_i
+#     beta_m = np.sqrt(2 * gamma) # normalized unit
+#     A = (gamma_i * beta_m + beta_i / beta_m )/2
     
-    z_plasma = np.array(timeSteps) * dt
-    phi =  z_plasma / beta_m
-    emitEvolUniformPlasmaTheory = emitn_i * np.sqrt(A**2 - (A**2-1) * np.exp(-(energySpread * phi)**2))
-    
-#     cwd = os.getcwd()
-#    os.chdir(cwd+'/Beam0002/Raw')
+#     z_plasma = np.array(timeSteps) * dt
+#     phi =  z_plasma / beta_m
+#     emitEvolUniformPlasmaTheory = emitn_i * np.sqrt(A**2 - (A**2-1) * np.exp(-(energySpread * phi)**2))
     
     for timeStep in timeSteps:
 
@@ -411,8 +407,8 @@ def analyzeWitnessRawData(zVisualizeCenter,halfThickness,en,e,a,b,sig,energy,ene
         
         dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
         z = dataset_x3[...] # type(data) outputs numpy.ndarray
-        #inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
-        inVisualizationRange = (z > float('-inf')) & (z < float('inf'))
+        inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
+#         inVisualizationRange = (z > float('-inf')) & (z < float('inf'))
         z = z[inVisualizationRange]
         
         dataset_p1 = f['/p1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
@@ -467,72 +463,74 @@ def analyzeWitnessRawData(zVisualizeCenter,halfThickness,en,e,a,b,sig,energy,ene
         beta_x_z = np.append(beta_x_z,beta_x)
         beta_y = sigma_y ** 2 / emit_y
         beta_y_z = np.append(beta_y_z,beta_y)
-    
-    # Plot the beam quantities according to the user's need
-    if(en):
-        fig, ax = plt.subplots()
-        plt.plot(timeSteps, emitn_x_z,label='x')
-        plt.plot(timeSteps, emitn_y_z,label='y')
-        plt.plot(timeSteps, emitEvolUniformPlasmaTheory,label='Theory')
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\epsilon_n \;(c/\omega_p)$')
-        plt.legend(loc='lower right')
-        plt.show()
-        fig.savefig('emittance.png')
-    if(e):
-        plt.plot(timeSteps, emit_x_z,label='x')
-        plt.plot(timeSteps, emit_y_z,label='y')
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\epsilon \;(c/\omega_p)$')
-        plt.legend(loc='lower right')
-        plt.show()
-    if(a):
-        plt.plot(timeSteps, alpha_x_z,label='x')
-        plt.plot(timeSteps, alpha_y_z,label='y')
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\\alpha$')
-        plt.legend(loc='lower right')
-        plt.show()
-    if(b):
-        plt.plot(timeSteps, beta_x_z,label='x')
-        plt.plot(timeSteps, beta_y_z,label='y')
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\\beta \;(c/\omega_p)$')
-        plt.legend(loc='lower right')
-        plt.show()
-    
-    if(sig):
-        plt.plot(timeSteps, sigma_x_z,label='x')
-        plt.plot(timeSteps, sigma_y_z,label='y')
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\sigma \;(c/\omega_p)$')
-        plt.legend(loc='lower right')
-        plt.show()
-    
-    if(energy):
-        plt.plot(timeSteps, gammaE_z)
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\gamma $')
-        plt.show()
-    if(energySpread):
-        plt.plot(timeSteps, energySpread_z)
-        plt.xlabel('$z\;(c/\omega_p)$')
-        plt.ylabel('$\Delta \gamma /\gamma$ (%)')
-        plt.show()
+        
+    parameters = {}
+    parameters['epsilon_n_x'] = emitn_x_z
+    parameters['epsilon_n_y'] = emitn_y_z
+    parameters['epsilon_x'] = emit_x_z
+    parameters['epsilon_y'] = emit_y_z
+    parameters['alpha_x'] = alpha_x_z
+    parameters['alpha_y'] = alpha_y_z
+    parameters['beta_x'] = beta_x_z
+    parameters['beta_y'] = beta_y_z
+    parameters['sigma_x'] = sigma_x_z
+    parameters['sigma_y'] = sigma_y_z
+    parameters['energy'] = gammaE_z
+    parameters['energy_spread'] = energySpread_z
+    parameters['s'] = s
 
-    return
+    return parameters
+#     # Plot the beam quantities according to the user's need
+#     if(en):
+#         fig, ax = plt.subplots()
+#         plt.plot(timeSteps, emitn_x_z,label='x')
+#         plt.plot(timeSteps, emitn_y_z,label='y')
+# #         plt.plot(timeSteps, emitEvolUniformPlasmaTheory,label='Theory')
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\epsilon_n \;(c/\omega_p)$')
+#         plt.legend(loc='lower right')
+#         plt.show()
+#         fig.savefig('emittance.png')
+#     if(e):
+#         plt.plot(timeSteps, emit_x_z,label='x')
+#         plt.plot(timeSteps, emit_y_z,label='y')
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\epsilon \;(c/\omega_p)$')
+#         plt.legend(loc='lower right')
+#         plt.show()
+#     if(a):
+#         plt.plot(timeSteps, alpha_x_z,label='x')
+#         plt.plot(timeSteps, alpha_y_z,label='y')
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\\alpha$')
+#         plt.legend(loc='lower right')
+#         plt.show()
+#     if(b):
+#         plt.plot(timeSteps, beta_x_z,label='x')
+#         plt.plot(timeSteps, beta_y_z,label='y')
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\\beta \;(c/\omega_p)$')
+#         plt.legend(loc='lower right')
+#         plt.show()
+    
+#     if(sig):
+#         plt.plot(timeSteps, sigma_x_z,label='x')
+#         plt.plot(timeSteps, sigma_y_z,label='y')
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\sigma \;(c/\omega_p)$')
+#         plt.legend(loc='lower right')
+#         plt.show()
+    
+#     if(energy):
+#         plt.plot(timeSteps, gammaE_z)
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\gamma $')
+#         plt.show()
+#     if(energySpread):
+#         plt.plot(timeSteps, energySpread_z)
+#         plt.xlabel('$z\;(c/\omega_p)$')
+#         plt.ylabel('$\Delta \gamma /\gamma$ (%)')
+#         plt.show()
 
 
-def chooseWhatToSee():
-    interact(analyzeWitnessRawData,
-             zVisualizeCenter = widgets.IntSlider(value=0,min=-3,max=3,step=1, description='center of data visualizatino region'),
-             halfThickness = widgets.FloatText(value=1, description='half thickness of data visualization region'),
-             en = widgets.Checkbox(value=True,description='$\epsilon_n$'),
-             e = widgets.Checkbox(value=False,description='$\epsilon$'),
-             a = widgets.Checkbox(value=False,description='$\\alpha$'),
-             b = widgets.Checkbox(value=False,description='$\\beta$'),
-             sig = widgets.Checkbox(value=False,description='$\sigma$'),
-             energy = widgets.Checkbox(value=False,description='$\gamma$'),
-             energySpread = widgets.Checkbox(value=False,description='$\Delta \gamma /\gamma$ (%)'),
-            );
-    return
+
