@@ -348,6 +348,7 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
     
     nbeams = inputDeck['simulation']['nbeams']
+    offset = inputDeck['simulation']['box']['z'][0]
     if(beam_number > nbeams):
         return
     idx = int(beam_number-1)
@@ -371,8 +372,8 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
 #         beta_i = inputDeck['beam'][1]['beta'][0]
 #         energySpread = inputDeck['beam'][1]['sigma_vz'] / gamma
     
-    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigmaz + halfThickness * sigmaz
-    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigmaz - halfThickness * sigmaz
+    zVisualizeMax = zWitnessCenter - offset + zVisualizeCenter * sigmaz + halfThickness * sigmaz
+    zVisualizeMin = zWitnessCenter - offset + zVisualizeCenter * sigmaz - halfThickness * sigmaz
 
     emitn_x_z = np.array([])
     emit_x_z = np.array([])
@@ -387,7 +388,7 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
     sigma_x_z = np.array([])
     sigma_y_z = np.array([])
 
-    timeSteps = range(first_file_number,last_file_number,ndump)
+    timeSteps = range(first_file_number,last_file_number+ndump,ndump)
     s = np.array([i * dt for i in timeSteps])
     
 #     # Calculate the theoretical emittance growth
@@ -407,9 +408,16 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
         
         dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
         z = dataset_x3[...] # type(data) outputs numpy.ndarray
+        
+        n_all_particles = len(z)
+        
         inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
 #         inVisualizationRange = (z > float('-inf')) & (z < float('inf'))
         z = z[inVisualizationRange]
+        
+        n_in_range_particles = len(z)
+        
+        print('In file '+ filename +', analyzing ',(n_in_range_particles / n_all_particles * 100),'% particles')
         
         dataset_p1 = f['/p1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
         px = dataset_p1[...] # type(data) outputs numpy.ndarray
