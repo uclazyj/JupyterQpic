@@ -363,12 +363,14 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
         sigma_px, sigma_py = inputDeck['beam'][1]['sigma_v'][0], inputDeck['beam'][1]['sigma_v'][1]
         alpha_ix, alpha_iy = 0,0
         beta_ix, beta_iy = sigma_x ** 2 / (sigma_x * sigma_px / gamma), sigma_y ** 2 / (sigma_y * sigma_py / gamma)
-        energySpread = inputDeck['beam'][1]['sigma_v'][2] / gamma
+        sigma_gamma = inputDeck['beam'][1]['sigma_v'][2]
+        energySpread = sigma_gamma / gamma
     elif(profile == 2):
         sigma_z= inputDeck['beam'][idx]['sigmaz']  
         alpha_ix, alpha_iy = inputDeck['beam'][1]['alpha'][0], inputDeck['beam'][1]['alpha'][1]
         beta_ix, beta_iy = inputDeck['beam'][1]['beta'][0], inputDeck['beam'][1]['beta'][1]
-        energySpread = inputDeck['beam'][1]['sigma_vz'] / gamma
+        sigma_gamma = inputDeck['beam'][1]['sigma_vz']
+        energySpread = sigma_gamma / gamma
     
     zVisualizeMax = zWitnessCenter - offset + zVisualizeCenter * sigma_z + halfThickness * sigma_z
     zVisualizeMin = zWitnessCenter - offset + zVisualizeCenter * sigma_z - halfThickness * sigma_z
@@ -393,11 +395,11 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
     gamma_ix, gamma_iy = (1 + alpha_ix ** 2) / beta_ix, (1 + alpha_iy ** 2) / beta_iy
     beta_m = np.sqrt(2 * gamma) # normalized unit
     A_x, A_y = (gamma_ix * beta_m + beta_ix / beta_m )/2, (gamma_iy * beta_m + beta_iy / beta_m )/2
-
-    phi =  s / beta_m
+    
+    phi_bar_noacc =  s / beta_m
     parameters = {}
-    parameters['emitn_x_theory'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(-(energySpread * phi)**2))
-    parameters['emitn_y_theory'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(-(energySpread * phi)**2))
+    parameters['emitn_x_theory_noacc'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(-(energySpread * phi_bar_noacc)**2))
+    parameters['emitn_y_theory_noacc'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(-(energySpread * phi_bar_noacc)**2))
     
     for timeStep in timeSteps:
 
@@ -485,6 +487,13 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
     parameters['energy'] = gammaE_z
     parameters['energy_spread'] = energySpread_z
     parameters['s'] = s
+    
+    phi_bar_acc =  np.sqrt(2) * parameters['s'] / (np.sqrt(parameters['energy']) + np.sqrt(gamma))
+
+    sigma_phi = phi_bar_acc / 2 * sigma_gamma / np.sqrt(parameters['energy']) / np.sqrt(gamma)
+                                                                    
+    parameters['emitn_x_theory_acc'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(- 4 * sigma_phi ** 2))
+    parameters['emitn_y_theory_acc'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(- 4 * sigma_phi ** 2))
 
     return parameters
 #     # Plot the beam quantities according to the user's need
