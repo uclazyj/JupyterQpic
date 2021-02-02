@@ -52,6 +52,11 @@ def makeplot(fileNameList,scaleList = [1],LineoutDir = None,Show_theory = None,D
         colorBarTotalRange = [-2,2]
         lineoutAxisDefaultRange = [-2,2]
         lineoutAxisTotalRange = [-3,3]
+    else:
+        colorBarDefaultRange = [-1,1]
+        colorBarTotalRange = [-2,2]
+        lineoutAxisDefaultRange = [-2,2]
+        lineoutAxisTotalRange = [-3,3]
   
     for i in range(len(fileNameList)):
         f=h5py.File(fileNameList[i],'r')
