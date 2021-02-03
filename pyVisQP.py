@@ -347,7 +347,7 @@ def getBubbleBoundary(filename,ionBubbleThreshold = -8e-2):
 
 ###################### plot emittance for witness beam
 # Normally, number = 1: drive beam; number = 2: witness beam
-def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, halfThickness = 5):
+def analyze_beam_data(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, halfThickness = 5):
     
     with open('../qpinput.json') as finput:
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
@@ -359,22 +359,22 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
     idx = int(beam_number-1)
     dt = inputDeck['simulation']['dt']
     zWitnessCenter = inputDeck['beam'][idx]['center'][2]
-    gamma = inputDeck['beam'][1]['gamma']
+    gamma = inputDeck['beam'][idx]['gamma']
     
     profile = inputDeck['beam'][idx]['profile']
     if(profile == 0):
         sigma_z= inputDeck['beam'][idx]['sigma'][2]
-        sigma_x, sigma_y = inputDeck['beam'][1]['sigma'][0], inputDeck['beam'][1]['sigma'][1]
-        sigma_px, sigma_py = inputDeck['beam'][1]['sigma_v'][0], inputDeck['beam'][1]['sigma_v'][1]
+        sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
+        sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
         alpha_ix, alpha_iy = 0,0
         beta_ix, beta_iy = sigma_x ** 2 / (sigma_x * sigma_px / gamma), sigma_y ** 2 / (sigma_y * sigma_py / gamma)
-        sigma_gamma = inputDeck['beam'][1]['sigma_v'][2]
+        sigma_gamma = inputDeck['beam'][idx]['sigma_v'][2]
         energySpread = sigma_gamma / gamma
     elif(profile == 2):
         sigma_z= inputDeck['beam'][idx]['sigmaz']  
-        alpha_ix, alpha_iy = inputDeck['beam'][1]['alpha'][0], inputDeck['beam'][1]['alpha'][1]
-        beta_ix, beta_iy = inputDeck['beam'][1]['beta'][0], inputDeck['beam'][1]['beta'][1]
-        sigma_gamma = inputDeck['beam'][1]['sigma_vz']
+        alpha_ix, alpha_iy = inputDeck['beam'][idx]['alpha'][0], inputDeck['beam'][idx]['alpha'][1]
+        beta_ix, beta_iy = inputDeck['beam'][idx]['beta'][0], inputDeck['beam'][idx]['beta'][1]
+        sigma_gamma = inputDeck['beam'][idx]['sigma_vz']
         energySpread = sigma_gamma / gamma
     
     zVisualizeMax = zWitnessCenter - offset + zVisualizeCenter * sigma_z + halfThickness * sigma_z
@@ -512,3 +512,152 @@ def analyze_beam_bata(ndump, last_file_number,first_file_number = 0,beam_number 
 #         plt.legend(loc='lower right')
 #         plt.show()
 #         fig.savefig('emittance.png')
+
+
+def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, halfThickness = 5):
+    
+    with open('../qpinput.json') as finput:
+        inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
+    
+    nbeams = inputDeck['simulation']['nbeams']
+    if(beam_number > nbeams):
+        return
+    idx = int(beam_number-1)
+    dt = inputDeck['simulation']['dt']
+    zWitnessCenter = inputDeck['beam'][idx]['center'][2]
+    gamma = inputDeck['beam'][idx]['gamma']
+    
+    profile = inputDeck['beam'][idx]['profile']
+    if(profile == 0):
+        sigma_z= inputDeck['beam'][idx]['sigma'][2]
+        sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
+        sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
+        alpha_ix, alpha_iy = 0,0
+        beta_ix, beta_iy = sigma_x ** 2 / (sigma_x * sigma_px / gamma), sigma_y ** 2 / (sigma_y * sigma_py / gamma)
+        sigma_gamma = inputDeck['beam'][1]['sigma_v'][2]
+        energySpread = sigma_gamma / gamma
+    
+    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + halfThickness * sigma_z
+    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - halfThickness * sigma_z
+
+    emitn_x_z = np.array([])
+    emit_x_z = np.array([])
+    emitn_y_z = np.array([])
+    emit_y_z = np.array([])
+    gammaE_z = np.array([])
+    energySpread_z = np.array([])
+    alpha_x_z = np.array([])
+    alpha_y_z = np.array([])
+    beta_x_z = np.array([])
+    beta_y_z = np.array([])
+    sigma_x_z = np.array([])
+    sigma_y_z = np.array([])
+
+    timeSteps = range(first_file_number,last_file_number+ndump,ndump)
+    s = np.array([i * dt for i in timeSteps])
+    
+    # Calculate the theoretical emittance growth
+    gamma_ix, gamma_iy = (1 + alpha_ix ** 2) / beta_ix, (1 + alpha_iy ** 2) / beta_iy
+    beta_m = np.sqrt(2 * gamma) # normalized unit
+    A_x, A_y = (gamma_ix * beta_m + beta_ix / beta_m )/2, (gamma_iy * beta_m + beta_iy / beta_m )/2
+    
+    phi_bar_noacc =  s / beta_m
+    parameters = {}
+    parameters['emitn_x_theory_noacc'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(-(energySpread * phi_bar_noacc)**2))
+    parameters['emitn_y_theory_noacc'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(-(energySpread * phi_bar_noacc)**2))
+    
+    for timeStep in timeSteps:
+
+        timeStep = str(timeStep).zfill(8)
+        filename = '../Beam2/Raw/raw_' + timeStep + '.h5'
+        f=h5py.File(filename,'r')
+        
+        dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
+        z = dataset_x3[...] # type(data) outputs numpy.ndarray
+        
+        n_all_particles = len(z)
+        
+        inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
+#         inVisualizationRange = (z > float('-inf')) & (z < float('inf'))
+        z = z[inVisualizationRange]
+        
+        n_in_range_particles = len(z)
+        
+        print('In file '+ filename +', analyzing ',(n_in_range_particles / n_all_particles * 100),'% particles')
+        
+        dataset_p1 = f['/p1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
+        px = dataset_p1[...] # type(data) outputs numpy.ndarray
+        px = px[inVisualizationRange] # extract the part within the data visualization range
+        px = px - px.mean()
+        dataset_p2 = f['/p2'] 
+        py = dataset_p2[...]
+        py = py[inVisualizationRange]
+        py = py - py.mean()
+        dataset_p3 = f['/p3'] 
+        gammaE = dataset_p3[...] 
+        gammaE = gammaE[inVisualizationRange]
+        gammaE_bar = gammaE.mean()
+        gammaE_z = np.append(gammaE_z,gammaE_bar)
+        sigma_gammaE = np.std(gammaE)
+        energySpread_z = np.append(energySpread_z,sigma_gammaE / gammaE_bar)
+        
+        xprime = px / gammaE
+        yprime = py / gammaE
+
+        dataset_x1 = f['/x1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
+        x = dataset_x1[...] # type(data) outputs numpy.ndarray
+        x = x[inVisualizationRange]
+        x = x - x.mean()
+        sigma_x = np.std(x)
+        sigma_x_z = np.append(sigma_x_z,sigma_x)
+
+        dataset_x2 = f['/x2'] 
+        y = dataset_x2[...]
+        y = y[inVisualizationRange]
+        y = y - y.mean()
+        sigma_y = np.std(y)
+        sigma_y_z = np.append(sigma_y_z,sigma_y)
+
+        emitn_x = np.sqrt(sigma_x ** 2 * np.std(px) ** 2 - (x * px).mean() ** 2)
+        emitn_x_z = np.append(emitn_x_z,emitn_x)
+        emit_x = np.sqrt(sigma_x ** 2 * np.std(xprime) ** 2 - (x * xprime).mean() ** 2)
+        
+        emit_x_z = np.append(emit_x_z,emit_x)
+        emitn_y = np.sqrt(sigma_y ** 2 * np.std(py) ** 2 - (y * py).mean() ** 2)
+        emitn_y_z = np.append(emitn_y_z,emitn_y)
+        emit_y = np.sqrt(sigma_y ** 2 * np.std(yprime) ** 2 - (y * yprime).mean() ** 2)
+        emit_y_z = np.append(emit_y_z,emit_y)
+        
+        alpha_x = -(x * xprime).mean() / emit_x
+        alpha_x_z = np.append(alpha_x_z,alpha_x)
+        alpha_y = -(y * yprime).mean() / emit_y
+        alpha_y_z = np.append(alpha_y_z,alpha_y)
+        
+        beta_x = sigma_x ** 2 / emit_x
+        beta_x_z = np.append(beta_x_z,beta_x)
+        beta_y = sigma_y ** 2 / emit_y
+        beta_y_z = np.append(beta_y_z,beta_y)
+        
+    
+    parameters['epsilon_n_x'] = emitn_x_z
+    parameters['epsilon_n_y'] = emitn_y_z
+    parameters['epsilon_x'] = emit_x_z
+    parameters['epsilon_y'] = emit_y_z
+    parameters['alpha_x'] = alpha_x_z
+    parameters['alpha_y'] = alpha_y_z
+    parameters['beta_x'] = beta_x_z
+    parameters['beta_y'] = beta_y_z
+    parameters['sigma_x'] = sigma_x_z
+    parameters['sigma_y'] = sigma_y_z
+    parameters['energy'] = gammaE_z
+    parameters['energy_spread'] = energySpread_z
+    parameters['s'] = s
+    
+    phi_bar_acc =  np.sqrt(2) * parameters['s'] / (np.sqrt(parameters['energy']) + np.sqrt(gamma))
+
+    sigma_phi = phi_bar_acc / 2 * sigma_gamma / np.sqrt(parameters['energy']) / np.sqrt(gamma)
+                                                                    
+    parameters['emitn_x_theory_acc'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(- 4 * sigma_phi ** 2))
+    parameters['emitn_y_theory_acc'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(- 4 * sigma_phi ** 2))
+
+    return parameters
