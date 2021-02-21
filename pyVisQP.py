@@ -362,6 +362,7 @@ def analyze_beam_data(ndump, last_file_number,first_file_number = 0,beam_number 
     gamma = inputDeck['beam'][idx]['gamma']
     
     profile = inputDeck['beam'][idx]['profile']
+    print(profile)
     if(profile == 0):
         sigma_z= inputDeck['beam'][idx]['sigma'][2]
         sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
@@ -528,7 +529,7 @@ def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_nu
     gamma = inputDeck['beam'][idx]['gamma']
     
     profile = inputDeck['beam'][idx]['profile']
-    if(profile == 0):
+    if(profile == 0 or profile == 1):
         sigma_z= inputDeck['beam'][idx]['sigma'][2]
         sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
         sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
