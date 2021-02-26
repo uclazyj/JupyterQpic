@@ -515,7 +515,7 @@ def analyze_beam_data(ndump, last_file_number,first_file_number = 0,beam_number 
 #         fig.savefig('emittance.png')
 
 
-def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, halfThickness = 5):
+def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, slice_thickness = 0.1):
     
     with open('../qpinput.json') as finput:
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
@@ -530,7 +530,7 @@ def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_nu
     
     profile = inputDeck['beam'][idx]['profile']
     if(profile == 0 or profile == 1):
-        sigma_z= inputDeck['beam'][idx]['sigma'][2]
+        sigma_z = inputDeck['beam'][idx]['sigma'][2]
         sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
         sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
         alpha_ix, alpha_iy = 0,0
@@ -538,8 +538,8 @@ def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_nu
         sigma_gamma = inputDeck['beam'][1]['sigma_v'][2]
         energySpread = sigma_gamma / gamma
     
-    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + halfThickness * sigma_z
-    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - halfThickness * sigma_z
+    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + slice_thickness * sigma_z / 2
+    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - slice_thickness * sigma_z / 2
 
     emitn_x_z = np.array([])
     emit_x_z = np.array([])
