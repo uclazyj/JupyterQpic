@@ -535,7 +535,7 @@ def analyze_beam_data_QPAD(ndump, last_file_number,first_file_number = 0,beam_nu
         sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
         alpha_ix, alpha_iy = 0,0
         beta_ix, beta_iy = sigma_x ** 2 / (sigma_x * sigma_px / gamma), sigma_y ** 2 / (sigma_y * sigma_py / gamma)
-        sigma_gamma = inputDeck['beam'][1]['sigma_v'][2]
+        sigma_gamma = inputDeck['beam'][idx]['sigma_v'][2]
         energySpread = sigma_gamma / gamma
     
     zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + slice_thickness * sigma_z / 2
