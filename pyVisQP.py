@@ -9,6 +9,22 @@ import ipywidgets as widgets
 
 import os
 
+# Take numerical differentiation for a 1D numpy array
+def NDiff1D(x,y):
+    if len(x) != len(y):
+        print('The length of the input array are not the same!')
+        return
+    if len(x) < 2:
+        print('The length of the input array is less than 2!')
+        return
+    N = len(x)
+    dydx = np.zeros(N)
+    dydx[0] = (y[1] - y[0]) / (x[1] - x[0])
+    dydx[-1] = (y[-1] - y[-2]) / (x[-1] - x[-2])
+    for i in range(1,N-1):
+        dydx[i] = (y[i+1] - y[i-1]) / (x[i+1] - x[i-1])
+    return dydx
+
 # Take numerical differentiation for a 2D numpy array
 def NDiff(a,xLength,yLength,Ddir):
     nRows = a.shape[0]
