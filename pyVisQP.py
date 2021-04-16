@@ -824,8 +824,12 @@ def get_mean_and_std(x,weights):
     E_X2 = np.dot(x**2, weights)
     temp = E_X2 - E_X ** 2
     if temp < 0:
-        print('In the function get_mean_and_std, the sqrt is negative! It is',temp)
-        return
+        print('Warning: In the function get_mean_and_std, the sqrt is negative! It is',temp)
+#         print('len(x)=',len(x))
+#         print('mean(x)=',np.dot(x,weights))
+#         print('mean(x^2)=',np.dot(x**2,weights))
+#         print('sum(weights)=',np.sum(weights))
+        return (E_X, 0.0)
     return (E_X, np.sqrt(temp))
     
     
