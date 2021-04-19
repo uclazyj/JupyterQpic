@@ -578,7 +578,7 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
     for timeStep in timeSteps:
 
         timeStep = str(timeStep).zfill(8)
-        filename = '../Beam2/Raw/raw_' + timeStep + '.h5'
+        filename = '../Beam'+str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
         f=h5py.File(filename,'r')
         
         dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
@@ -709,7 +709,7 @@ def analyze_beam_data_QPAD_profile1(ndump, last_file_number,first_file_number = 
     for timeStep in timeSteps:
 
         timeStep = str(timeStep).zfill(8)
-        filename = '../Beam2/Raw/raw_' + timeStep + '.h5'
+        filename = '../Beam'+str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
         f=h5py.File(filename,'r')
         
         dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
