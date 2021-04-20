@@ -537,41 +537,33 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
     
     nbeams = inputDeck['simulation']['nbeams']
-    if(beam_number > nbeams):
+    if(beam_number > nbeams or beam_number <= 0):
+        print('Invalid beam number!')
         return
     idx = int(beam_number-1)
     dt = inputDeck['simulation']['dt']
     zWitnessCenter = inputDeck['beam'][idx]['center'][2]
-    gamma = inputDeck['beam'][idx]['gamma']
     
-    profile = inputDeck['beam'][idx]['profile']
-    if(profile == 0 or profile == 1):
-        sigma_z = inputDeck['beam'][idx]['sigma'][2]
-        sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
-        sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
-        alpha_ix, alpha_iy = 0,0
-        beta_ix, beta_iy = sigma_x ** 2 / (sigma_x * sigma_px / gamma), sigma_y ** 2 / (sigma_y * sigma_py / gamma)
-        sigma_gamma = inputDeck['beam'][idx]['sigma_v'][2]
-        energySpread = sigma_gamma / gamma
+    sigma_z = inputDeck['beam'][idx]['sigma'][2]
     
     zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + slice_thickness * sigma_z / 2
     zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - slice_thickness * sigma_z / 2
 
-    emitn_x_z = np.array([])
-    emit_x_z = np.array([])
-    emitn_y_z = np.array([])
-    emit_y_z = np.array([])
-    gammaE_z = np.array([])
-    energySpread_z = np.array([])
-    alpha_x_z = np.array([])
-    alpha_y_z = np.array([])
-    beta_x_z = np.array([])
-    beta_y_z = np.array([])
-    sigma_x_z = np.array([])
-    sigma_y_z = np.array([])
+    emitn_x_z = []
+    emit_x_z = []
+    emitn_y_z = []
+    emit_y_z = []
+    gammaE_z = []
+    energySpread_z = []
+    alpha_x_z = []
+    alpha_y_z = []
+    beta_x_z = []
+    beta_y_z = []
+    sigma_x_z = []
+    sigma_y_z = []
 
     timeSteps = range(first_file_number,last_file_number+ndump,ndump)
-    s = np.array([i * dt for i in timeSteps])
+    s = [i * dt for i in timeSteps]
     
     parameters = {}
     
@@ -587,7 +579,6 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
         n_all_particles = len(z)
         
         inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
-#         inVisualizationRange = (z > float('-inf')) & (z < float('inf'))
         z = z[inVisualizationRange]
         
         n_in_range_particles = len(z)
@@ -598,9 +589,9 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
         gammaE = dataset_p3[...] 
         gammaE = gammaE[inVisualizationRange]
         gammaE_bar = gammaE.mean()
-        gammaE_z = np.append(gammaE_z,gammaE_bar)
+        gammaE_z.append(gammaE_bar)
         sigma_gammaE = np.std(gammaE)
-        energySpread_z = np.append(energySpread_z,sigma_gammaE / gammaE_bar)
+        energySpread_z.append(sigma_gammaE / gammaE_bar)
         
         dataset_p1 = f['/p1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
         px = dataset_p1[...] # type(data) outputs numpy.ndarray
@@ -628,27 +619,27 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
         y = y[inVisualizationRange]
         y = y - y.mean()
         sigma_y = np.std(y)
-        sigma_y_z = np.append(sigma_y_z,sigma_y)
+        sigma_y_z.append(sigma_y)
 
         emitn_x = np.sqrt(sigma_x ** 2 * np.std(px) ** 2 - (x * px).mean() ** 2)
-        emitn_x_z = np.append(emitn_x_z,emitn_x)
+        emitn_x_z.append(emitn_x)
         emit_x = np.sqrt(sigma_x ** 2 * np.std(xprime) ** 2 - (x * xprime).mean() ** 2)
         
-        emit_x_z = np.append(emit_x_z,emit_x)
+        emit_x_z.append(emit_x)
         emitn_y = np.sqrt(sigma_y ** 2 * np.std(py) ** 2 - (y * py).mean() ** 2)
-        emitn_y_z = np.append(emitn_y_z,emitn_y)
+        emitn_y_z.append(emitn_y)
         emit_y = np.sqrt(sigma_y ** 2 * np.std(yprime) ** 2 - (y * yprime).mean() ** 2)
-        emit_y_z = np.append(emit_y_z,emit_y)
+        emit_y_z.append(emit_y)
         
         alpha_x = -(x * xprime).mean() / emit_x
-        alpha_x_z = np.append(alpha_x_z,alpha_x)
+        alpha_x_z.append(alpha_x)
         alpha_y = -(y * yprime).mean() / emit_y
-        alpha_y_z = np.append(alpha_y_z,alpha_y)
+        alpha_y_z.append(alpha_y)
         
         beta_x = sigma_x ** 2 / emit_x
-        beta_x_z = np.append(beta_x_z,beta_x)
+        beta_x_z.append(beta_x)
         beta_y = sigma_y ** 2 / emit_y
-        beta_y_z = np.append(beta_y_z,beta_y)
+        beta_y_z.append(beta_y)
         
     
     parameters['epsilon_n_x'] = emitn_x_z
@@ -674,7 +665,7 @@ def analyze_beam_data_QPAD_profile1(ndump, last_file_number,first_file_number = 
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
     
     nbeams = inputDeck['simulation']['nbeams']
-    if(beam_number > nbeams):
+    if(beam_number > nbeams or beam_number <= 0):
         print('Invalid beam number!')
         return
     idx = int(beam_number-1)
