@@ -22,13 +22,17 @@ def to_phys_unit(value,unit,plasma_density): # plasma_density is in cm^-3
     return value / UNITS[unit]
 
 # This function set the longitudinal varying plasma density for each species in QPAD input file
-def set_plasma_density(idx,density,s,path = '..'):
+def set_plasma_density(s,density,name = 'species',idx = 0,path = '..'):
+    if len(s) != len(density):
+        print('The length of s and fs do not match!')
+        return
 
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
-
-    inputDeck['species'][idx]['piecewise_fs'] = list(density)
-    inputDeck['species'][idx]['piecewise_s'] = list(s)
+    
+    inputDeck[name][idx]['piecewise_s'] = list(s)
+    inputDeck[name][idx]['piecewise_fs'] = list(density)
+    inputDeck[name][idx]['profile'][1] = 'piecewise-linear'
 
     ## Write the modified file object into a jason file
     with open(path + '/qpinput.json','w') as outfile:
@@ -36,34 +40,42 @@ def set_plasma_density(idx,density,s,path = '..'):
 
 # This function plots the plasma density of the first species in QPAD input file
 
-def plot_plasma_density(save=False,path = '..'):
+def get_density_profile(name = 'species', idx = 0, plot = False, save=False, path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
-    fs = inputDeck['species'][0]['piecewise_fs']
-    s = inputDeck['species'][0]['piecewise_s']
-    plt.plot(s,fs)
-    plt.xlabel('z')
-    plt.ylabel(r'$n(z)/n_0$')
-    plt.title('Plasma density profile')
-    if save:
-        plt.savefig('plasma_density_profile_in_qpinput.png')
-    plt.show()
+    s = inputDeck[name][idx]['piecewise_s']
+    fs = inputDeck[name][idx]['piecewise_fs']
+    if plot:
+        plt.plot(s,fs)
+        plt.xlabel('z')
+        plt.ylabel(r'$n(z)/n_0$')
+        plt.title('Plasma density profile')
+        if save:
+            plt.savefig('plasma_density_profile_in_qpinput.png')
+        plt.show()
+    return (s,fs)
 
 # This function sets the beam parameters sigma and sigma_v so that the beam is matched to the uniform plasma
 # idx: The beam idx in input file (0 may correspond to the drive beam, 1 may correspond to the witness beam)
 # epsilon_n is in normalized unit
-def set_matched_beam(idx,epsilon_n,path = '..'):
+# local_density is the local plasma density normalized to n0
+# name and i determines the profile of which species or neutral that the beam is matching to
+def set_matched_beam(idx,epsilon_n,name = 'species',i = 0,path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    entrance_density = 1.0
+    if inputDeck[name][i]['profile'][1] == 'piecewise-linear':
+        s,fs = get_density_profile(name,i,False,False,path)
+        entrance_density = fs[0]
+
     gamma = inputDeck['beam'][idx]['gamma']
     epsilon = epsilon_n / gamma
     beta_m = np.sqrt(2 * gamma)
     sigma_m = np.sqrt(beta_m * epsilon)
+    sigma_m = sigma_m / np.sqrt(np.sqrt(entrance_density)) # sigma_m^4 * n is a constant (assuming geometric emittance is a constant)
     sigma_p = epsilon_n / sigma_m
-    inputDeck['beam'][idx]['sigma'][0] = sigma_m
-    inputDeck['beam'][idx]['sigma'][1] = sigma_m
-    inputDeck['beam'][idx]['sigma_v'][0] = sigma_p
-    inputDeck['beam'][idx]['sigma_v'][1] = sigma_p
+    inputDeck['beam'][idx]['sigma'][0:2] = [sigma_m,sigma_m]
+    inputDeck['beam'][idx]['sigma_v'][0:2] = [sigma_p,sigma_p]
     
     ## Write the modified file object into a jason file
     with open(path + '/qpinput.json','w') as outfile:
@@ -120,4 +132,5 @@ def set_ndump(ndump,path = '..'):
 def get_n0(path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
-    return inputDeck['simulation']['n0']
+    return inputDeck['simulation']['n0']   
+    

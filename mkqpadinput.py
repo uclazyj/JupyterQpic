@@ -18,7 +18,7 @@ N_drive = 3*10**10 # number of electrons
 N_witness = 10**10
 epsilon_n_drive = normalize(1,'mm',n0)
 epsilon_n_witness = normalize(0.1,'um',n0)
-ndump = 111
+ndump = 10
 ######## END SET PARAMETERS SECTION ########
 
 
@@ -28,11 +28,12 @@ ndump = 111
 
 ### Set parameters for drive beam ###
 idx = 0
-set_matched_beam(idx,epsilon_n_drive,path)
+set_matched_beam(idx,epsilon_n_drive,'species',0,path)
 set_beam_peak_density(idx,N_drive,path)
 ### Set parameters for witness beam ###
 idx = 1
-set_matched_beam(idx,epsilon_n_witness,path)
+set_matched_beam(idx,epsilon_n_witness,'species',0,path)
 set_beam_peak_density(idx,N_witness,path)
 ### set ndump ###
 set_ndump(ndump,path)
+set_plasma_density([0,1,2],[10,20,30],'species',0,'..')
