@@ -59,7 +59,7 @@ def get_density_profile(name = 'species', idx = 0, plot = False, save=False, pat
         plt.show()
     return (s,fs)
 
-# This function sets the beam parameters sigma and sigma_v so that the beam is matched to the uniform plasma
+# This function sets the beam parameters sigma and sigma_v so that the beam is matched to the uniform plasma (if uniform = True) or the plasma entrance (if uniform = False)
 # idx: The beam idx in input file (0 may correspond to the drive beam, 1 may correspond to the witness beam)
 # epsilon_n is in normalized unit
 # local_density is the local plasma density normalized to n0
@@ -137,4 +137,32 @@ def get_n0(path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     return inputDeck['simulation']['n0']   
-    
+
+# From the plasma density in the input file, return the matched parameters that match to the r/2 focusing force
+# i is the beam index
+def get_matched_beam_parameters(i = 1,name = 'species',idx = 0,path = '..'):
+    parameters = {}
+    s, n = get_density_profile(name, idx,False,False,path)
+    parameters['s'] = s
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    gamma = inputDeck['beam'][i]['gamma']
+    epsilon_n = inputDeck['beam'][i]['sigma'][0] * inputDeck['beam'][i]['sigma_v'][0]
+    beta_m0 = np.sqrt(2*gamma)
+    sigma_m0 = np.sqrt(beta_m0 * epsilon_n / gamma)
+    beta_m = beta_m0 / np.sqrt(n)
+    sigma_m = sigma_m0 / np.sqrt(np.sqrt(n))
+    parameters['sigma_m'] = sigma_m
+    parameters['beta_m'] = beta_m
+    return parameters
+
+def change_spotsize_fix_charge_and_emittance(i,times,path = '..'):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    inputDeck['beam'][i]['sigma'][0] *= times
+    inputDeck['beam'][i]['sigma'][1] *= times
+    inputDeck['beam'][i]['sigma_v'][0] /= times
+    inputDeck['beam'][i]['sigma_v'][1] /= times
+    inputDeck['beam'][i]['peak_density'] /= (times ** 2)
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
