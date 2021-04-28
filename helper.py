@@ -26,6 +26,9 @@ def set_plasma_density(s,density,name = 'species',idx = 0,path = '..'):
     if len(s) != len(density):
         print('The length of s and fs do not match!')
         return
+    if s[0] != 0:
+        print('The s array should start from 0!')
+        return
 
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
@@ -33,6 +36,7 @@ def set_plasma_density(s,density,name = 'species',idx = 0,path = '..'):
     inputDeck[name][idx]['piecewise_s'] = list(s)
     inputDeck[name][idx]['piecewise_fs'] = list(density)
     inputDeck[name][idx]['profile'][1] = 'piecewise-linear'
+    inputDeck['simulation']['time'] = s[-1]
 
     ## Write the modified file object into a jason file
     with open(path + '/qpinput.json','w') as outfile:
@@ -60,11 +64,11 @@ def get_density_profile(name = 'species', idx = 0, plot = False, save=False, pat
 # epsilon_n is in normalized unit
 # local_density is the local plasma density normalized to n0
 # name and i determines the profile of which species or neutral that the beam is matching to
-def set_matched_beam(idx,epsilon_n,name = 'species',i = 0,path = '..'):
+def set_matched_beam(idx,epsilon_n,uniform = True,name = 'species',i = 0,path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     entrance_density = 1.0
-    if inputDeck[name][i]['profile'][1] == 'piecewise-linear':
+    if uniform == False: # Then match the beam to the plasma entrance
         s,fs = get_density_profile(name,i,False,False,path)
         entrance_density = fs[0]
 
