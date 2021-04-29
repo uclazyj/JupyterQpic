@@ -43,11 +43,11 @@ set_plasma_density(s,n,'species',1,'..')
 
 ### Set parameters for drive beam ###
 idx = 0
-set_matched_beam(idx,epsilon_n_drive,True,'species',0,path)
+set_matched_beam(idx = idx,epsilon_n = epsilon_n_drive,uniform = True,name = 'species',i = 0,path = path)
 set_beam_peak_density(idx,N_drive,path)
 ### Set parameters for witness beam ###
 idx = 1
-set_matched_beam(idx,epsilon_n_witness,'species',0,path)
+set_matched_beam(idx = idx,epsilon_n = epsilon_n_witness,uniform = False,name = 'species',i = 0,path = path)
 set_beam_peak_density(idx,N_witness,path)
 ### set ndump ###
 set_ndump(ndump,path)
