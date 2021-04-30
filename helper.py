@@ -166,3 +166,42 @@ def change_spotsize_fix_charge_and_emittance(i,times,path = '..'):
     inputDeck['beam'][i]['peak_density'] /= (times ** 2)
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
+        
+def get_lineout_idx(Min,Max,lineout_pos,n_grid_points):
+    if lineout_pos < Min or lineout_pos > Max:
+        print('Lineout position is out of range:[',Min,',',Max,']!')
+        return 0
+    return int((n_grid_points-1) / (Max - Min) * (lineout_pos - Min) + 0.5)
+
+
+def get_lineout(filename,direction,lineout_pos,code = 'QPAD'):
+    with h5py.File(filename, 'r') as h5file:
+        dset_name = list(h5file.keys())[1] # dset_name = 'charge_slice_xz'
+        data = np.array(h5file[dset_name])
+        n_grid_points_xi, n_grid_points_x = data.shape
+        x_range = np.array(h5file['AXIS']['AXIS1'])
+        xi_range = np.array(h5file['AXIS']['AXIS2'])
+
+        if direction == 'transverse':
+            lineout_idx_xi = get_lineout_idx(xi_range[0],xi_range[1],lineout_pos,n_grid_points_xi)
+            lineout = data[lineout_idx_xi,:]
+            if code == 'QuickPIC':
+                lineout = lineout[1:] # get rid of the empty data in the first column
+
+            x = np.linspace(x_range[0],x_range[1],num = len(lineout))
+            return x,lineout
+        elif direction == 'longitudinal':
+            lineout_idx_x = get_lineout_idx(x_range[0],x_range[1],lineout_pos,n_grid_points_x)
+            lineout = data[:,lineout_idx_x]
+
+            xi = np.linspace(xi_range[0],xi_range[1],num = len(lineout))
+            return xi,lineout
+
+
+def select_lineout_range(x,lineout,x_min,x_max):
+    if x_min < x[0] or x_max > x[-1] or x_min > x_max:
+        print('Invalid lineout range!')
+        return x,lineout
+    x_min_idx = get_lineout_idx(x[0],x[-1],x_min,len(x)) 
+    x_max_idx = get_lineout_idx(x[0],x[-1],x_max,len(x))
+    return x[x_min_idx:x_max_idx+1],lineout[x_min_idx:x_max_idx+1]

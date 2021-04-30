@@ -261,31 +261,23 @@ def getLineout(filename,direction,index):
     xRange=np.array(f['AXIS/AXIS1'])
     xiRange=np.array(f['AXIS/AXIS2'])
     
-    xLengthTotal = xRange[1] - xRange[0]
-    zLengthTotal = xiRange[1] - xiRange[0]
-    
-    xCellsTotal = data.shape[1]
-    zCellsTotal = data.shape[0]
-    
-    x=np.linspace(xRange[0],xRange[1],xCellsTotal)
-    xi=np.linspace(xiRange[0],xiRange[1],zCellsTotal)
+    zCellsTotal, xCellsTotal = data.shape
     
     if(direction == 'transverse'):
         if((index < 0) or (index >= zCellsTotal)):
             print('Wrong index!')
             return
         else:
-            lineout = data[index,:]
-            lineout = np.stack((x,lineout),axis=0)
+            x=np.linspace(xRange[0],xRange[1],xCellsTotal)
+            return (x,data[index,:])
             
-    if(direction == 'longitudinal'):
+    elif(direction == 'longitudinal'):
         if((index < 0) or (index >= xCellsTotal)):
             print('Wrong index!')
             return
         else:
-            lineout = data[:,index]
-            lineout = np.stack((xi,lineout),axis=0)
-    return lineout
+            xi=np.linspace(xiRange[0],xiRange[1],zCellsTotal)
+            return (xi,data[:,index])
 
 
 def Nd(x,y):
