@@ -2,6 +2,7 @@ import json
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 import numpy as np
+import h5py
 
 c = 3e8
 m = 9.11e-31
