@@ -523,7 +523,7 @@ def analyze_beam_data(ndump, last_file_number,first_file_number = 0,beam_number 
 #         fig.savefig('emittance.png')
 
 
-def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, slice_thickness = 0.1):
+def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1):
     
     with open('../qpinput.json') as finput:
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
@@ -538,8 +538,8 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
     
     sigma_z = inputDeck['beam'][idx]['sigma'][2]
     
-    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + slice_thickness * sigma_z / 2
-    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - slice_thickness * sigma_z / 2
+    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
+    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
 
     emitn_x_z = []
     emit_x_z = []
@@ -604,7 +604,7 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
         x = x[inVisualizationRange]
         x = x - x.mean()
         sigma_x = np.std(x)
-        sigma_x_z = np.append(sigma_x_z,sigma_x)
+        sigma_x_z.append(sigma_x)
 
         dataset_x2 = f['/x2'] 
         y = dataset_x2[...]
@@ -651,7 +651,7 @@ def analyze_beam_data_QPAD_profile0(ndump, last_file_number,first_file_number = 
     return parameters
 
 
-def analyze_beam_data_QPAD_profile1(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, slice_thickness = 0.1):
+def analyze_beam_data_QPAD_profile1(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1):
     
     with open('../qpinput.json') as finput:
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
@@ -668,8 +668,8 @@ def analyze_beam_data_QPAD_profile1(ndump, last_file_number,first_file_number = 
     
 
     
-    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + slice_thickness * sigma_z / 2
-    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - slice_thickness * sigma_z / 2
+    zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
+    zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
 
     emitn_x_z = []
     emit_x_z = []
