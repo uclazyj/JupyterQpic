@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from collections import OrderedDict
 import numpy as np
 import h5py
+import pyVisQP
 
 c = 3e8
 m = 9.11e-31
@@ -155,6 +156,7 @@ def get_matched_beam_parameters(i = 1,name = 'species',idx = 0,path = '..'):
     sigma_m = sigma_m0 / np.sqrt(np.sqrt(n))
     parameters['sigma_m'] = sigma_m
     parameters['beta_m'] = beta_m
+    parameters['alpha_m'] = -1/2 * pyVisQP.NDiff1D(s,beta_m)
     return parameters
 
 def change_spotsize_fix_charge_and_emittance(i,times,path = '..'):
