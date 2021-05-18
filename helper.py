@@ -113,7 +113,9 @@ def set_ndump(ndump,path = '..'):
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     nbeam = inputDeck['simulation']['nbeams']
     nspecies = inputDeck['simulation']['nspecies']
-    nneutrals = inputDeck['simulation']['nneutrals']
+    nneutrals = 0
+    if 'nneutrals' in inputDeck['simulation']:
+        nneutrals = inputDeck['simulation']['nneutrals']
     # set ndump for the beams
     for i in range(nbeam):
         ndiag = len(inputDeck['beam'][i]['diag'])
@@ -130,7 +132,9 @@ def set_ndump(ndump,path = '..'):
         for j in range(ndiag):
             inputDeck['neutrals'][i]['diag'][j]['ndump'] = ndump
     # set ndump for the fields
-    inputDeck['field']['diag'][0]['ndump'] = ndump
+    ndiag = len(inputDeck['field']['diag'])
+    for j in range(ndiag):
+        inputDeck['field']['diag'][j]['ndump'] = ndump
         
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
@@ -208,3 +212,71 @@ def select_lineout_range(x,lineout,x_min,x_max):
     x_min_idx = get_lineout_idx(x[0],x[-1],x_min,len(x)) 
     x_max_idx = get_lineout_idx(x[0],x[-1],x_max,len(x))
     return x[x_min_idx:x_max_idx+1],lineout[x_min_idx:x_max_idx+1]
+
+
+# The following functions are for QuickPIC
+
+def propagate_alpha_beta(alpha_i,beta_i,z):
+    gamma_i = (1 + alpha_i ** 2) / beta_i
+    beta = beta_i - 2 * z * alpha_i + z ** 2 * gamma_i
+    alpha = alpha_i - z * gamma_i
+    return (alpha, beta)
+
+def set_one_item(type_name,idx,parameter_name,value,path = '..'):
+    with open(path + '/qpinput.json') as f:
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    inputDeck[type_name][idx][parameter_name] = value
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
+
+# This function sets all the slice index
+def set_slice_idx(center = True,slice_idx=0,path = '..'):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    if center:
+        indx = inputDeck['simulation']['indx']
+        slice_idx = 2 ** indx // 2 + 1
+    nbeam = inputDeck['simulation']['nbeams']
+    nspecies = inputDeck['simulation']['nspecies']
+    nneutrals = 0
+    if 'nneutrals' in inputDeck['simulation']:  
+        nneutrals = inputDeck['simulation']['nneutrals']
+    # set slice idx for the beams
+    for i in range(nbeam):
+        ndiag = len(inputDeck['beam'][i]['diag'])
+        for j in range(ndiag):
+            if 'slice' in inputDeck['beam'][i]['diag'][j]:
+                nslices = len(inputDeck['beam'][i]['diag'][j]['slice'])
+                for k in range(nslices):
+                    if inputDeck['beam'][i]['diag'][j]['slice'][k][0] in {"xz","yz"}:
+                        inputDeck['beam'][i]['diag'][j]['slice'][k][1] = slice_idx
+    
+    # set slice idx for the species
+    for i in range(nspecies):
+        ndiag = len(inputDeck['species'][i]['diag'])
+        for j in range(ndiag):
+            if 'slice' in inputDeck['species'][i]['diag'][j]:
+                nslices = len(inputDeck['species'][i]['diag'][j]['slice'])
+                for k in range(nslices):
+                    if inputDeck['species'][i]['diag'][j]['slice'][k][0] in {"xz","yz"}:
+                        inputDeck['species'][i]['diag'][j]['slice'][k][1] = slice_idx
+
+    # set slice idx for the neutrals
+    for i in range(nneutrals):
+        ndiag = len(inputDeck['neutrals'][i]['diag'])
+        for j in range(ndiag):
+            if 'slice' in inputDeck['neutrals'][i]['diag'][j]:
+                nslices = len(inputDeck['neutrals'][i]['diag'][j]['slice'])
+                for k in range(nslices):
+                    if inputDeck['neutrals'][i]['diag'][j]['slice'][k][0] in {"xz","yz"}:
+                        inputDeck['neutrals'][i]['diag'][j]['slice'][k][1] = slice_idx
+    # set slice idx for the fields
+    ndiag = len(inputDeck['field']['diag'])
+    for j in range(ndiag):
+        if 'slice' in inputDeck['field']['diag'][j]:
+            nslices = len(inputDeck['field']['diag'][j]['slice'])
+            for k in range(nslices):
+                if inputDeck['field']['diag'][j]['slice'][k][0] in {"xz","yz"}:
+                    inputDeck['field']['diag'][j]['slice'][k][1] = slice_idx
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
