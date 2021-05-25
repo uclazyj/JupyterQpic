@@ -712,8 +712,9 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
         dataset_q = f['/q']
         q = dataset_q[...]
         q = q[inVisualizationRange]
-        q = abs(q)
-        weights = q / np.sum(q)
+#         q = abs(q)
+#         weights = q / np.sum(q)
+        weights = abs(q)
         
         dataset_p3 = f['/p3'] 
         gammaE = dataset_p3[...] 
@@ -815,22 +816,18 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
     return parameters
 
 def get_mean_and_std(x,weights):
+    weights = weights / np.sum(weights) # normalize the weights so they sum to 1
+    
     if len(x) == 0:
         print('The input array is empty!')
         return
     if len(x) != len(weights):
         print('The length of the input array and the length of the weights do not match!')
         return
-    if np.sum(weights) > 1.0001 or np.sum(weights) < 0.9999:
-        print('The weights does not sum to 1!')
-        return
     E_X = np.dot(x,weights)
-    E_X2 = np.dot(x**2, weights)
-    temp = E_X2 - E_X ** 2
-    if temp < 0:
-        print('Warning: In the function get_mean_and_std, the sqrt is negative! It is',temp)
-        return (E_X, 0.0)
-    return (E_X, np.sqrt(temp))
+    x = x - E_X
+    sigma = np.sqrt(np.dot(x**2, weights))
+    return (E_X, sigma)
     
 
 #     gamma = inputDeck['beam'][idx]['gamma']
