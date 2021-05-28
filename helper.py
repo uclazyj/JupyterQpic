@@ -23,6 +23,29 @@ def to_phys_unit(value,unit,plasma_density): # plasma_density is in cm^-3
     value *= (c / omega_p)
     return value / UNITS[unit]
 
+# Perform a linear regression, and return the predicted values for x
+# Input x, y are both 1D array
+def linear_regression(x,y):
+    if len(x) != len(y):
+        print('The length of the input must match!')
+        return
+    from sklearn.linear_model import LinearRegression
+    reg = LinearRegression()
+    x = x.reshape(-1,1)
+    y = y.reshape(-1,1)
+    reg.fit(x,y)
+    pred = reg.predict(x)
+    return pred.reshape(-1)
+
+def get_one_item(keylist,path = '..'):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        a = json.load(f,object_pairs_hook=OrderedDict)
+    for i in keylist:
+        a = a[i]
+    return a
+    
+
+
 # This function set the longitudinal varying plasma density for each species in QPAD input file
 def set_plasma_density(s,density,name = 'species',idx = 0,path = '..'):
     if len(s) != len(density):
@@ -280,3 +303,5 @@ def set_slice_idx(center = True,slice_idx=0,path = '..'):
                     inputDeck['field']['diag'][j]['slice'][k][1] = slice_idx
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
+
+        
