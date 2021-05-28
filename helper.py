@@ -43,8 +43,34 @@ def get_one_item(keylist,path = '..'):
     for i in keylist:
         a = a[i]
     return a
-    
 
+# delete the species and beams that are not used in the input file
+def clean_up(path = '..'):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    nspecies = inputDeck['simulation']['nspecies']
+    nbeams = inputDeck['simulation']['nbeams']
+
+    while len(inputDeck['species']) > nspecies:
+        inputDeck['species'].pop()
+    while len(inputDeck['beam']) > nbeams:
+        inputDeck['beam'].pop()
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
+
+# fill up the species and beams in the input file (append copies of the first beam until there are nbeam beams. Also append copies of the first species until there are nspecies)
+def fill(path = '..'):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    nspecies = inputDeck['simulation']['nspecies']
+    nbeams = inputDeck['simulation']['nbeams']
+
+    while len(inputDeck['species']) < nspecies:
+        inputDeck['species'].append(inputDeck['species'][0])
+    while len(inputDeck['beam']) < nbeams:
+        inputDeck['beam'].append(inputDeck['beam'][0])
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
 
 # This function set the longitudinal varying plasma density for each species in QPAD input file
 def set_plasma_density(s,density,name = 'species',idx = 0,path = '..'):
@@ -89,7 +115,7 @@ def get_density_profile(name = 'species', idx = 0, plot = False, save=False, pat
 # epsilon_n is in normalized unit
 # local_density is the local plasma density normalized to n0
 # name and i determines the profile of which species or neutral that the beam is matching to
-def set_matched_beam(idx,epsilon_n,uniform = True,name = 'species',i = 0,path = '..'):
+def set_matched_beam(idx,epsilon_n,name = 'species',i = 0,uniform = True,path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     entrance_density = 1.0
