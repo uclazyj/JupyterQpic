@@ -655,22 +655,27 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
         return
     idx = int(beam_number-1)
     dt = inputDeck['simulation']['dt']
-    zCenter = inputDeck['beam'][idx]['center'][2]
     
-    # Get the bunch length sigma_z
-    profile = inputDeck['beam'][idx]['profile']
-    if (QPAD and profile in {0,1}) or (QPAD == False and profile == 0):
-        sigma_z = inputDeck['beam'][idx]['sigma'][2]
-        zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
-        zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
-    elif QPAD == False and inputDeck['beam'][idx]['profile'] == 2:
-        sigma_z = inputDeck['beam'][idx]['sigmaz']
-        zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
-        zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
-    else:
-        zVisualizeMax = float('inf')
-        zVisualizeMin = -float('inf')
-        print('The parameter half_thickness is not used. Analyzing all the beam particles!')
+    zVisualizeMax = zVisualizeCenter + half_thickness
+    zVisualizeMin = zVisualizeCenter - half_thickness
+    
+    
+#     zCenter = inputDeck['beam'][idx]['center'][2]
+    
+#     # Get the bunch length sigma_z
+#     profile = inputDeck['beam'][idx]['profile']
+#     if (QPAD and profile in {0,1}) or (QPAD == False and profile == 0):
+#         sigma_z = inputDeck['beam'][idx]['sigma'][2]
+#         zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
+#         zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
+#     elif QPAD == False and inputDeck['beam'][idx]['profile'] == 2:
+#         sigma_z = inputDeck['beam'][idx]['sigmaz']
+#         zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
+#         zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
+#     else:
+#         zVisualizeMax = float('inf')
+#         zVisualizeMin = -float('inf')
+#         print('The parameter half_thickness is not used. Analyzing all the beam particles!')
     
     emitn_x_z = []
     emit_x_z = []
@@ -690,8 +695,10 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
 
     parameters = {}
     
-    for timeStep in timeSteps:
-
+#     for timeStep in timeSteps:
+    for i in range(len(timeSteps)):
+        
+        timeStep = timeSteps[i]
         timeStep = str(timeStep).zfill(8)
         temp = "" if QPAD else "000"
         filename = '../Beam'+ temp + str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
@@ -701,13 +708,13 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
         z = dataset_x3[...] # type(data) outputs numpy.ndarray
         
         n_all_particles = len(z)
-        
         inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
         z = z[inVisualizationRange]
-        
         n_in_range_particles = len(z)
         
-        print('In file '+ filename +', analyzing ',(n_in_range_particles / n_all_particles * 100),'% particles')
+        if i % 10 == 0:
+            print('In file '+ filename +', analyzing ' + \
+                  str(round((n_in_range_particles / n_all_particles * 100),2)) + '% particles')
         
         dataset_q = f['/q']
         q = dataset_q[...]
@@ -814,6 +821,19 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
     parameters['s'] = s
 
     return parameters
+
+def save_beam_analysis(beam_number,xi_s,parameters_xi_s,half_thickness):
+    if len(xi_s) != len(parameters_xi_s):
+        print('The length of the inputs do not match!')
+        return
+    xi_s = [round(i,1) for i in xi_s]
+    half_thickness = round(half_thickness,1)
+    dic = {}
+    for i in range(len(xi_s)):
+        dic[xi_s[i]] = parameters_xi_s[i]
+    filename = 'beam' + str(beam_number) + '_' + str(xi_s).replace(" ","") + '_' + str(half_thickness)
+    with open(filename,'w') as f:
+        json.dump(dic,f,indent=4)
 
 def get_mean_and_std(x,weights):
     weights = weights / np.sum(weights) # normalize the weights so they sum to 1
