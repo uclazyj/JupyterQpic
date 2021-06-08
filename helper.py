@@ -195,14 +195,20 @@ def get_n0(path = '..'):
 
 # From the plasma density in the input file, return the matched parameters that match to the r/2 focusing force
 # i is the beam index
-def get_matched_beam_parameters(i = 1,name = 'species',idx = 0,path = '..'):
+def get_matched_beam_parameters(i = 1,name = 'species',idx = 0,path = '..',QPAD = True):
     parameters = {}
     s, n = get_density_profile(name, idx,False,False,path)
     parameters['s'] = s
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    profile = inputDeck['beam'][i]['profile']
     gamma = inputDeck['beam'][i]['gamma']
-    epsilon_n = inputDeck['beam'][i]['sigma'][0] * inputDeck['beam'][i]['sigma_v'][0]
+    if (QPAD and profile == 3) or ((not QPAD) and profile == 2):
+        epsilon_n = inputDeck['beam'][i]['emittance'][0]
+    else:
+        epsilon_n = inputDeck['beam'][i]['sigma'][0] * inputDeck['beam'][i]['sigma_v'][0]
+    
+    
     beta_m0 = np.sqrt(2*gamma)
     sigma_m0 = np.sqrt(beta_m0 * epsilon_n / gamma)
     beta_m = beta_m0 / np.sqrt(n)
