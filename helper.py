@@ -139,11 +139,21 @@ def set_matched_beam(idx,epsilon_n,name = 'species',i = 0,uniform = True,path = 
 
 # This function uses the input parameter N (the total number of electrons in the beam) and the 
 # sigma_x, sigma_y, sigma_z specified in the input file to calculate the beam peak density (normalized to n0), and set it in the input file.
-def set_beam_peak_density(idx,N,path = '..'):
+def set_beam_peak_density(idx,N,path = '..',QPAD = True):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     n0 = inputDeck['simulation']['n0']
-    sigma_x, sigma_y, sigma_z = inputDeck['beam'][idx]['sigma']
+    profile = inputDeck['beam'][idx]['profile']
+    if (QPAD and profile == 3) or (not QPAD and profile == 2):
+        beta_x,beta_y = inputDeck['beam'][idx]['beta']
+        epsilon_n_x,epsilon_n_y = inputDeck['beam'][idx]['emittance']
+        gamma = inputDeck['beam'][idx]['gamma']
+        sigma_x = np.sqrt(beta_x * epsilon_n_x / gamma)
+        sigma_y = np.sqrt(beta_y * epsilon_n_y / gamma)
+        sigma_z = inputDeck['beam'][idx]['sigmaz']
+    else:
+        sigma_x, sigma_y, sigma_z = inputDeck['beam'][idx]['sigma']
+        
     sigma_x = to_phys_unit(sigma_x,'cm',n0)
     sigma_y = to_phys_unit(sigma_y,'cm',n0)
     sigma_z = to_phys_unit(sigma_z,'cm',n0)
@@ -218,6 +228,16 @@ def get_matched_beam_parameters(i = 1,name = 'species',idx = 0,path = '..',QPAD 
     parameters['alpha_m'] = -1/2 * pyVisQP.NDiff1D(s,beta_m)
     return parameters
 
+# Used for QPAD profile 3 or QuickPIC profile 2. Calculate the initial spotsize from the input file
+def get_init_spot_size(i,path = '..',QPAD = True):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    beta = inputDeck['beam'][i]['beta'][0]
+    epsilon_n = inputDeck['beam'][i]['emittance'][0]
+    gamma = inputDeck['beam'][i]['gamma']
+    sigma = np.sqrt(beta * epsilon_n / gamma)
+    return sigma
+
 def change_spotsize_fix_charge_and_emittance(i,times,path = '..'):
     with open(path + '/qpinput.json') as f: # This is the old jason input file
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
@@ -277,12 +297,27 @@ def propagate_alpha_beta(alpha_i,beta_i,z):
     alpha = alpha_i - z * gamma_i
     return (alpha, beta)
 
+# s is the position of the beam's vacuum waist inside the plasma (at the plasma entrance, the position is 0)
+# (relative to the beam's vacuum waist, the plasma entrance is at -s from the beam's waist)
+def set_Twiss_at_entrance(i,beta_star,s,path = '..',QPAD = True): # i is the beam index
+    alpha, beta = propagate_alpha_beta(0,beta_star,-s)
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+
+    inputDeck['beam'][i]['profile'] = 3 if QPAD else 2
+    inputDeck['beam'][i]['alpha'] = [alpha,alpha]
+    inputDeck['beam'][i]['beta'] = [beta,beta]
+
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
+
 def set_one_item(type_name,idx,parameter_name,value,path = '..'):
     with open(path + '/qpinput.json') as f:
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     inputDeck[type_name][idx][parameter_name] = value
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
+    
 
 # This function sets all the slice index
 def set_slice_idx(center = True,slice_idx=0,path = '..'):
