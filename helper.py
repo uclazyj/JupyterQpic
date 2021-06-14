@@ -310,6 +310,13 @@ def set_Twiss_at_entrance(i,beta_star,s,path = '..',QPAD = True): # i is the bea
 
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
+        
+def get_Twiss_in_vacuum(alpha_i,beta_i,z): # alpha_i and beta_i are numbers, s is a numpy array
+    gamma_i = (1 + alpha_i ** 2) / beta_i
+    alpha = alpha_i - z * gamma_i
+    beta = beta_i - 2 * z * alpha_i + z ** 2 * gamma_i
+    return alpha,beta
+    
 
 def set_one_item(type_name,idx,parameter_name,value,path = '..'):
     with open(path + '/qpinput.json') as f:
