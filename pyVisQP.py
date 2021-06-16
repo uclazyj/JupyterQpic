@@ -848,6 +848,47 @@ def get_mean_and_std(x,weights):
     x = x - E_X
     sigma = np.sqrt(np.dot(x**2, weights))
     return (E_X, sigma)
+
+def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None, ylim = None,dir_save = 'Phase_space'):
+    
+    if not os.path.isdir(dir_save):
+        os.mkdir(dir_save)
+    
+    for i in range(len(timeSteps)):
+
+        timeStep = timeSteps[i]
+
+        filename = '../Beam'+ str(beam_number)+'/Raw/raw_' + str(timeStep).zfill(8) + '.h5'
+
+        with h5py.File(filename, "r") as f:
+            dataset_x3 = f['/x3'] 
+            z_all = dataset_x3[...]
+
+            dataset_p1 = f['/p1'] 
+            px_all = dataset_p1[...]
+
+            dataset_x1 = f['/x1'] 
+            x_all = dataset_x1[...] 
+
+        plt.figure(i)
+
+        for xi in xi_s:
+            zVisualizeMax = xi + half_thickness_slice
+            zVisualizeMin = xi - half_thickness_slice
+            inVisualizationRange = (z_all > zVisualizeMin) & (z_all < zVisualizeMax)
+            x = x_all[inVisualizationRange]
+            px = px_all[inVisualizationRange]
+            plt.scatter(x,px,s=1,label = '$\\xi = $' + str(xi))
+
+        plt.xlabel('$x$')
+        plt.ylabel('$p_x$')
+        if xlim != None:
+            plt.xlim(xlim[0],xlim[1])
+        if ylim != None:
+            plt.ylim(ylim[0],ylim[1])
+        plt.title('t = ' + str(timeStep))
+        plt.legend()
+        plt.savefig(dir_save + '/phase_space_'+str(timeStep).zfill(8)+'.png')
     
 
 #     gamma = inputDeck['beam'][idx]['gamma']
