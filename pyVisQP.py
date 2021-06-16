@@ -6,6 +6,7 @@ import json
 from collections import OrderedDict
 from ipywidgets import interact,FloatSlider
 import ipywidgets as widgets
+from helper import *
 
 import os
 
@@ -644,7 +645,7 @@ def getBubbleBoundary(filename,ionBubbleThreshold = -8e-2):
 #     return parameters
 
 
-def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1,QPAD = True):
+def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1,QPAD = True):
     
     with open('../qpinput.json') as finput:
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
@@ -690,7 +691,7 @@ def analyze_raw_beam_data(ndump, last_file_number,first_file_number = 0,beam_num
     sigma_x_z = []
     sigma_y_z = []
 
-    timeSteps = range(first_file_number,last_file_number+ndump,ndump)
+    
     s = [i * dt for i in timeSteps]
 
     parameters = {}
@@ -853,6 +854,8 @@ def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None
     
     if not os.path.isdir(dir_save):
         os.mkdir(dir_save)
+        
+    dt = get_one_item(['simulation','dt'])
     
     for i in range(len(timeSteps)):
 
@@ -886,7 +889,7 @@ def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None
             plt.xlim(xlim[0],xlim[1])
         if ylim != None:
             plt.ylim(ylim[0],ylim[1])
-        plt.title('t = ' + str(timeStep))
+        plt.title('t = ' + str(int(dt * timeStep)))
         plt.legend()
         plt.savefig(dir_save + '/phase_space_'+str(timeStep).zfill(8)+'.png')
     

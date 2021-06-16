@@ -110,6 +110,17 @@ def get_density_profile(name = 'species', idx = 0, plot = False, save=False, pat
         plt.show()
     return (s,fs)
 
+def get_numbers_in_filenames(path = '..'):
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    ndump = inputDeck['beam'][0]['diag'][-1]['ndump']
+    time = inputDeck['simulation']['time']
+    dt = inputDeck['simulation']['dt']
+    last_file_number = int(time // ( dt * ndump) * ndump )
+    timeSteps = np.array(range(0,last_file_number+ndump,ndump))
+    s = timeSteps * dt
+    return timeSteps,s
+
 # This function sets the beam parameters sigma and sigma_v so that the beam is matched to the uniform plasma (if uniform = True) or the plasma entrance (if uniform = False)
 # idx: The beam idx in input file (0 may correspond to the drive beam, 1 may correspond to the witness beam)
 # epsilon_n is in normalized unit
