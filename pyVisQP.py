@@ -889,9 +889,10 @@ def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None
             plt.xlim(xlim[0],xlim[1])
         if ylim != None:
             plt.ylim(ylim[0],ylim[1])
-        plt.title('t = ' + str(int(dt * timeStep)))
+        plt.title('z = ' + str(int(dt * timeStep)))
         plt.legend()
         plt.savefig(dir_save + '/phase_space_'+str(timeStep).zfill(8)+'.png')
+        plt.close(fig)
     
 
 #     gamma = inputDeck['beam'][idx]['gamma']
