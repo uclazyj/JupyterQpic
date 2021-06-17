@@ -890,7 +890,7 @@ def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None
         if ylim != None:
             plt.ylim(ylim[0],ylim[1])
         plt.title('z = ' + str(int(dt * timeStep)))
-        plt.legend()
+        plt.legend(loc='lower right')
         plt.savefig(dir_save + '/phase_space_'+str(timeStep).zfill(8)+'.png')
         plt.close()
     
