@@ -93,6 +93,21 @@ def set_plasma_density(s,density,name = 'species',idx = 0,path = '..'):
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
 
+def set_uniform_plasma(name = 'species',idx = 0,path = '..'):
+
+    with open(path + '/qpinput.json') as f: # This is the old jason input file
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    if 'piecewise_s' in inputDeck[name][idx]:
+        del inputDeck[name][idx]['piecewise_s']
+    if 'piecewise_fs' in inputDeck[name][idx]:
+        del inputDeck[name][idx]['piecewise_fs']
+
+    inputDeck[name][idx]['profile'][1] = 'uniform'
+
+    ## Write the modified file object into a jason file
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
+        
 # This function plots the plasma density of the first species in QPAD input file
 
 def get_density_profile(name = 'species', idx = 0, plot = False, save=False, path = '..'):
