@@ -422,7 +422,8 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
         
         if i % 10 == 0:
             print('In file '+ filename +', analyzing ' + \
-                  str(round((n_in_range_particles / n_all_particles * 100),2)) + '% particles')
+                  str(round((n_in_range_particles / n_all_particles * 100),2)) + '% particles (' + \
+                  str(n_all_particles) + ' particles in the whole beam)')
         
         dataset_q = f['/q']
         q = dataset_q[...]
