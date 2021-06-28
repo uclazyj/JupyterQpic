@@ -352,298 +352,23 @@ def getBubbleBoundary(filename,ionBubbleThreshold = -8e-2):
 # boundary = getBubbleBoundary()
 # ax1.plot(boundary[0],boundary[1],'k--',label='bubble boundary')
 
-
-
-###################### plot emittance for witness beam
-# Normally, number = 1: drive beam; number = 2: witness beam
-
-# def analyze_beam_data(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, halfThickness = 5):
-    
-#     with open('../qpinput.json') as finput:
-#         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
-    
-#     nbeams = inputDeck['simulation']['nbeams']
-#     if(beam_number > nbeams):
-#         return
-#     idx = int(beam_number-1)
-#     dt = inputDeck['simulation']['dt']
-#     zWitnessCenter = inputDeck['beam'][idx]['center'][2]
-#     gamma = inputDeck['beam'][idx]['gamma']
-    
-#     profile = inputDeck['beam'][idx]['profile']
-#     print(profile)
-#     if(profile == 0):
-#         sigma_z= inputDeck['beam'][idx]['sigma'][2]
-#         sigma_x, sigma_y = inputDeck['beam'][idx]['sigma'][0], inputDeck['beam'][idx]['sigma'][1]
-#         sigma_px, sigma_py = inputDeck['beam'][idx]['sigma_v'][0], inputDeck['beam'][idx]['sigma_v'][1]
-#         alpha_ix, alpha_iy = 0,0
-#         beta_ix, beta_iy = sigma_x ** 2 / (sigma_x * sigma_px / gamma), sigma_y ** 2 / (sigma_y * sigma_py / gamma)
-#         sigma_gamma = inputDeck['beam'][idx]['sigma_v'][2]
-#         energySpread = sigma_gamma / gamma
-#     elif(profile == 2):
-#         sigma_z= inputDeck['beam'][idx]['sigmaz']  
-#         alpha_ix, alpha_iy = inputDeck['beam'][idx]['alpha'][0], inputDeck['beam'][idx]['alpha'][1]
-#         beta_ix, beta_iy = inputDeck['beam'][idx]['beta'][0], inputDeck['beam'][idx]['beta'][1]
-#         sigma_gamma = inputDeck['beam'][idx]['sigma_vz']
-#         energySpread = sigma_gamma / gamma
-    
-#     zVisualizeMax = zWitnessCenter + zVisualizeCenter * sigma_z + halfThickness * sigma_z
-#     zVisualizeMin = zWitnessCenter + zVisualizeCenter * sigma_z - halfThickness * sigma_z
-
-#     emitn_x_z = np.array([])
-#     emit_x_z = np.array([])
-#     emitn_y_z = np.array([])
-#     emit_y_z = np.array([])
-#     gammaE_z = np.array([])
-#     energySpread_z = np.array([])
-#     alpha_x_z = np.array([])
-#     alpha_y_z = np.array([])
-#     beta_x_z = np.array([])
-#     beta_y_z = np.array([])
-#     sigma_x_z = np.array([])
-#     sigma_y_z = np.array([])
-
-#     timeSteps = range(first_file_number,last_file_number+ndump,ndump)
-#     s = np.array([i * dt for i in timeSteps])
-    
-#     # Calculate the theoretical emittance growth
-#     gamma_ix, gamma_iy = (1 + alpha_ix ** 2) / beta_ix, (1 + alpha_iy ** 2) / beta_iy
-#     beta_m = np.sqrt(2 * gamma) # normalized unit
-#     A_x, A_y = (gamma_ix * beta_m + beta_ix / beta_m )/2, (gamma_iy * beta_m + beta_iy / beta_m )/2
-    
-#     phi_bar_noacc =  s / beta_m
-#     parameters = {}
-#     parameters['emitn_x_theory_noacc'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(-(energySpread * phi_bar_noacc)**2))
-#     parameters['emitn_y_theory_noacc'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(-(energySpread * phi_bar_noacc)**2))
-    
-#     for timeStep in timeSteps:
-
-#         timeStep = str(timeStep).zfill(8)
-#         filename = '../Beam0002/Raw/raw_' + timeStep + '.h5'
-#         f=h5py.File(filename,'r')
-        
-#         dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
-#         z = dataset_x3[...] # type(data) outputs numpy.ndarray
-        
-#         n_all_particles = len(z)
-        
-#         inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
-# #         inVisualizationRange = (z > float('-inf')) & (z < float('inf'))
-#         z = z[inVisualizationRange]
-        
-#         n_in_range_particles = len(z)
-        
-#         print('In file '+ filename +', analyzing ',(n_in_range_particles / n_all_particles * 100),'% particles')
-        
-#         dataset_p1 = f['/p1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
-#         px = dataset_p1[...] # type(data) outputs numpy.ndarray
-#         px = px[inVisualizationRange] # extract the part within the data visualization range
-#         px = px - px.mean()
-#         dataset_p2 = f['/p2'] 
-#         py = dataset_p2[...]
-#         py = py[inVisualizationRange]
-#         py = py - py.mean()
-#         dataset_p3 = f['/p3'] 
-#         gammaE = dataset_p3[...] 
-#         gammaE = gammaE[inVisualizationRange]
-#         gammaE_bar = gammaE.mean()
-#         gammaE_z = np.append(gammaE_z,gammaE_bar)
-#         sigma_gammaE = np.std(gammaE)
-#         energySpread_z = np.append(energySpread_z,sigma_gammaE / gammaE_bar)
-        
-#         xprime = px / gammaE
-#         yprime = py / gammaE
-
-#         dataset_x1 = f['/x1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
-#         x = dataset_x1[...] # type(data) outputs numpy.ndarray
-#         x = x[inVisualizationRange]
-#         x = x - x.mean()
-#         sigma_x = np.std(x)
-#         sigma_x_z = np.append(sigma_x_z,sigma_x)
-
-#         dataset_x2 = f['/x2'] 
-#         y = dataset_x2[...]
-#         y = y[inVisualizationRange]
-#         y = y - y.mean()
-#         sigma_y = np.std(y)
-#         sigma_y_z = np.append(sigma_y_z,sigma_y)
-
-#         emitn_x = np.sqrt(sigma_x ** 2 * np.std(px) ** 2 - (x * px).mean() ** 2)
-#         emitn_x_z = np.append(emitn_x_z,emitn_x)
-#         emit_x = np.sqrt(sigma_x ** 2 * np.std(xprime) ** 2 - (x * xprime).mean() ** 2)
-        
-#         emit_x_z = np.append(emit_x_z,emit_x)
-#         emitn_y = np.sqrt(sigma_y ** 2 * np.std(py) ** 2 - (y * py).mean() ** 2)
-#         emitn_y_z = np.append(emitn_y_z,emitn_y)
-#         emit_y = np.sqrt(sigma_y ** 2 * np.std(yprime) ** 2 - (y * yprime).mean() ** 2)
-#         emit_y_z = np.append(emit_y_z,emit_y)
-        
-#         alpha_x = -(x * xprime).mean() / emit_x
-#         alpha_x_z = np.append(alpha_x_z,alpha_x)
-#         alpha_y = -(y * yprime).mean() / emit_y
-#         alpha_y_z = np.append(alpha_y_z,alpha_y)
-        
-#         beta_x = sigma_x ** 2 / emit_x
-#         beta_x_z = np.append(beta_x_z,beta_x)
-#         beta_y = sigma_y ** 2 / emit_y
-#         beta_y_z = np.append(beta_y_z,beta_y)
-        
-    
-#     parameters['epsilon_n_x'] = emitn_x_z
-#     parameters['epsilon_n_y'] = emitn_y_z
-#     parameters['epsilon_x'] = emit_x_z
-#     parameters['epsilon_y'] = emit_y_z
-#     parameters['alpha_x'] = alpha_x_z
-#     parameters['alpha_y'] = alpha_y_z
-#     parameters['beta_x'] = beta_x_z
-#     parameters['beta_y'] = beta_y_z
-#     parameters['sigma_x'] = sigma_x_z
-#     parameters['sigma_y'] = sigma_y_z
-#     parameters['energy'] = gammaE_z
-#     parameters['energy_spread'] = energySpread_z
-#     parameters['s'] = s
-    
-#     phi_bar_acc =  np.sqrt(2) * parameters['s'] / (np.sqrt(parameters['energy']) + np.sqrt(gamma))
-
-#     sigma_phi = phi_bar_acc / 2 * sigma_gamma / np.sqrt(parameters['energy']) / np.sqrt(gamma)
-                                                                    
-#     parameters['emitn_x_theory_acc'] = np.sqrt(A_x**2 - (A_x**2-1) * np.exp(- 4 * sigma_phi ** 2))
-#     parameters['emitn_y_theory_acc'] = np.sqrt(A_y**2 - (A_y**2-1) * np.exp(- 4 * sigma_phi ** 2))
-
-#     return parameters
-
-
-# def analyze_beam_data_profile0(ndump, last_file_number,first_file_number = 0,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1,QPAD = True):
-    
-#     with open('../qpinput.json') as finput:
-#         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
-    
-#     nbeams = inputDeck['simulation']['nbeams']
-#     if(beam_number > nbeams or beam_number <= 0):
-#         print('Invalid beam number!')
-#         return
-#     idx = int(beam_number-1)
-#     dt = inputDeck['simulation']['dt']
-#     zCenter = inputDeck['beam'][idx]['center'][2]
-    
-#     # Get the bunch length sigma_z
-#     if QPAD == False and inputDeck['beam'][idx]['profile'] == 2:
-#         sigma_z = inputDeck['beam'][idx]['sigmaz']
-#     else:
-#         sigma_z = inputDeck['beam'][idx]['sigma'][2]
-    
-#     # Get the range of the beam particles that get into the calculation
-#     zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
-#     zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
-
-#     emitn_x_z = []
-#     emit_x_z = []
-#     emitn_y_z = []
-#     emit_y_z = []
-#     gammaE_z = []
-#     energySpread_z = []
-#     alpha_x_z = []
-#     alpha_y_z = []
-#     beta_x_z = []
-#     beta_y_z = []
-#     sigma_x_z = []
-#     sigma_y_z = []
-
-#     timeSteps = range(first_file_number,last_file_number+ndump,ndump)
-#     s = [i * dt for i in timeSteps]
-    
-#     parameters = {}
-    
-#     for timeStep in timeSteps:
-
-#         timeStep = str(timeStep).zfill(8)
-#         temp = "" if QPAD else "000"
-#         filename = '../Beam'+ temp + str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
-#         f=h5py.File(filename,'r')
-        
-#         dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
-#         z = dataset_x3[...] # type(data) outputs numpy.ndarray
-        
-#         n_all_particles = len(z)
-        
-#         inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
-#         z = z[inVisualizationRange]
-        
-#         n_in_range_particles = len(z)
-        
-#         print('In file '+ filename +', analyzing ',(n_in_range_particles / n_all_particles * 100),'% particles')
-        
-#         dataset_p3 = f['/p3']
-#         gammaE = dataset_p3[...] 
-#         gammaE = gammaE[inVisualizationRange]
-#         gammaE_bar = gammaE.mean()
-#         gammaE_z.append(gammaE_bar)
-#         sigma_gammaE = np.std(gammaE)
-#         energySpread_z.append(sigma_gammaE / gammaE_bar)
-        
-#         dataset_p1 = f['/p1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
-#         px = dataset_p1[...] # type(data) outputs numpy.ndarray
-#         px = px[inVisualizationRange] # extract the part within the data visualization range
-#         xprime = px / gammaE
-#         xprime = xprime - xprime.mean()
-#         px = px - px.mean()
-        
-#         dataset_p2 = f['/p2'] 
-#         py = dataset_p2[...]
-#         py = py[inVisualizationRange]
-#         yprime = py / gammaE
-#         yprime = yprime - yprime.mean()
-#         py = py - py.mean()   
-
-#         dataset_x1 = f['/x1'] # type(dataset) outputs: h5py._hl.dataset.Dataset
-#         x = dataset_x1[...] # type(data) outputs numpy.ndarray
-#         x = x[inVisualizationRange]
-#         x = x - x.mean()
-#         sigma_x = np.std(x)
-#         sigma_x_z.append(sigma_x)
-
-#         dataset_x2 = f['/x2'] 
-#         y = dataset_x2[...]
-#         y = y[inVisualizationRange]
-#         y = y - y.mean()
-#         sigma_y = np.std(y)
-#         sigma_y_z.append(sigma_y)
-
-#         emitn_x = np.sqrt(sigma_x ** 2 * np.std(px) ** 2 - (x * px).mean() ** 2)
-#         emitn_x_z.append(emitn_x)
-#         emit_x = np.sqrt(sigma_x ** 2 * np.std(xprime) ** 2 - (x * xprime).mean() ** 2) 
-#         emit_x_z.append(emit_x)
-#         emitn_y = np.sqrt(sigma_y ** 2 * np.std(py) ** 2 - (y * py).mean() ** 2)
-#         emitn_y_z.append(emitn_y)
-#         emit_y = np.sqrt(sigma_y ** 2 * np.std(yprime) ** 2 - (y * yprime).mean() ** 2)
-#         emit_y_z.append(emit_y)
-        
-#         alpha_x = -(x * xprime).mean() / emit_x
-#         alpha_x_z.append(alpha_x)
-#         alpha_y = -(y * yprime).mean() / emit_y
-#         alpha_y_z.append(alpha_y)
-        
-#         beta_x = sigma_x ** 2 / emit_x
-#         beta_x_z.append(beta_x)
-#         beta_y = sigma_y ** 2 / emit_y
-#         beta_y_z.append(beta_y)       
-    
-#     parameters['epsilon_n_x'] = emitn_x_z
-#     parameters['epsilon_n_y'] = emitn_y_z
-#     parameters['epsilon_x'] = emit_x_z
-#     parameters['epsilon_y'] = emit_y_z
-#     parameters['alpha_x'] = alpha_x_z
-#     parameters['alpha_y'] = alpha_y_z
-#     parameters['beta_x'] = beta_x_z
-#     parameters['beta_y'] = beta_y_z
-#     parameters['sigma_x'] = sigma_x_z
-#     parameters['sigma_y'] = sigma_y_z
-#     parameters['energy'] = gammaE_z
-#     parameters['energy_spread'] = energySpread_z
-#     parameters['s'] = s
-
-#     return parameters
-
+def remove_outliers(x,p,remove_rate):
+    if len(x) != len(p):
+        print('The length of x and p must equal!')
+        return
+    if remove_rate < 0 or remove_rate > 1:
+        print('The remove rate must between 0 and 1!')
+        return
+    N = len(x)
+    idx = list(range(N))
+    nRemove = int(N * remove_rate)
+    # Sort the idx according to the absolute value of x. Remove the first nRemove indexes.
+    idx_descending_abs_x = sorted(idx,key = lambda i:-abs(x[i]))
+    idx_remove_x = set(idx_descending_abs_x[:nRemove])
+    idx_descending_abs_p = sorted(idx,key = lambda i:-abs(p[i]))
+    idx_remove_p = set(idx_descending_abs_p[:nRemove])
+    idx_remove = idx_remove_x | idx_remove_p
+    return np.array([(i not in idx_remove) for i in idx])
 
 def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1,QPAD = True):
     
@@ -659,24 +384,6 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
     
     zVisualizeMax = zVisualizeCenter + half_thickness
     zVisualizeMin = zVisualizeCenter - half_thickness
-    
-    
-#     zCenter = inputDeck['beam'][idx]['center'][2]
-    
-#     # Get the bunch length sigma_z
-#     profile = inputDeck['beam'][idx]['profile']
-#     if (QPAD and profile in {0,1}) or (QPAD == False and profile == 0):
-#         sigma_z = inputDeck['beam'][idx]['sigma'][2]
-#         zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
-#         zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
-#     elif QPAD == False and inputDeck['beam'][idx]['profile'] == 2:
-#         sigma_z = inputDeck['beam'][idx]['sigmaz']
-#         zVisualizeMax = zCenter + zVisualizeCenter * sigma_z + half_thickness * sigma_z
-#         zVisualizeMin = zCenter + zVisualizeCenter * sigma_z - half_thickness * sigma_z
-#     else:
-#         zVisualizeMax = float('inf')
-#         zVisualizeMin = -float('inf')
-#         print('The parameter half_thickness is not used. Analyzing all the beam particles!')
     
     emitn_x_z = []
     emit_x_z = []
@@ -823,6 +530,127 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
 
     return parameters
 
+# remove_outliers(x,p,remove_rate):
+def analyze_raw_beam_data_remove_outliers(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1,QPAD = True, remove_rate = 0):
+    
+    with open('../qpinput.json') as finput:
+        inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
+    
+    nbeams = inputDeck['simulation']['nbeams']
+    if(beam_number > nbeams or beam_number <= 0):
+        print('Invalid beam number!')
+        return
+    idx = int(beam_number-1)
+    dt = inputDeck['simulation']['dt']
+    
+    zVisualizeMax = zVisualizeCenter + half_thickness
+    zVisualizeMin = zVisualizeCenter - half_thickness
+    
+    emitn_x_z = []
+    emit_x_z = []
+    gammaE_z = []
+    energySpread_z = []
+    alpha_x_z = []
+    beta_x_z = []
+    sigma_x_z = []
+
+    
+    s = [i * dt for i in timeSteps]
+
+    parameters = {}
+    
+#     for timeStep in timeSteps:
+    for i in range(len(timeSteps)):
+        
+        timeStep = timeSteps[i]
+        timeStep = str(timeStep).zfill(8)
+        temp = "" if QPAD else "000"
+        filename = '../Beam'+ temp + str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
+        f=h5py.File(filename,'r')
+        
+        dataset_x1 = f['/x1'] 
+        x = dataset_x1[...]
+        
+        dataset_p1 = f['/p1'] 
+        px = dataset_p1[...] 
+        
+        good_idx = remove_outliers(x,px,remove_rate) # good_idx are indexes of the particles who are not outliers
+        
+        x = x[good_idx]
+        px = px[good_idx]
+        
+        dataset_q = f['/q']
+        q = dataset_q[...]
+        q = q[good_idx]
+        
+    
+        dataset_x3 = f['/x3'] # type(dataset) outputs: h5py._hl.dataset.Dataset
+        z = dataset_x3[...] # type(data) outputs numpy.ndarray
+        z = z[good_idx]
+        
+        dataset_p3 = f['/p3'] 
+        gammaE = dataset_p3[...] 
+        gammaE = gammaE[good_idx]
+        
+        n_all_particles = len(z)
+        inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
+        z = z[inVisualizationRange]
+        n_in_range_particles = len(z)
+        
+        if i % 10 == 0:
+            print('In file '+ filename +', analyzing ' + \
+                  str(round((n_in_range_particles / n_all_particles * 100),2)) + '% particles')
+        
+        
+        q = q[inVisualizationRange]
+        weights = abs(q)
+        
+        gammaE = gammaE[inVisualizationRange]
+        gammaE_bar, sigma_gammaE = get_mean_and_std(gammaE,weights)
+        gammaE_z.append(gammaE_bar)
+        energySpread_z.append(sigma_gammaE / gammaE_bar)
+
+        px = px[inVisualizationRange] # extract the part within the data visualization range
+        
+        xprime = px / gammaE
+        E_xprime, sigma_xprime = get_mean_and_std(xprime,weights)
+        xprime = xprime - E_xprime
+
+        E_px, sigma_px = get_mean_and_std(px,weights)
+        px = px - E_px
+             
+        x = x[inVisualizationRange]
+        E_x, sigma_x = get_mean_and_std(x,weights)
+        x = x - E_x
+        sigma_x_z.append(sigma_x)
+        
+        E_xpx, _ = get_mean_and_std(x*px,weights)   
+        E_xxprime, _ = get_mean_and_std(x*xprime,weights)  
+
+        emitn_x = np.sqrt(sigma_x ** 2 * sigma_px ** 2 - E_xpx ** 2)
+        emitn_x_z.append(emitn_x)
+        
+        emit_x = np.sqrt(sigma_x ** 2 * sigma_xprime ** 2 - E_xxprime ** 2)
+        emit_x_z.append(emit_x)
+        
+        alpha_x = -E_xxprime / emit_x
+        alpha_x_z.append(alpha_x)
+        
+        beta_x = sigma_x ** 2 / emit_x
+        beta_x_z.append(beta_x)
+        
+    parameters['epsilon_n_x'] = emitn_x_z
+    parameters['epsilon_x'] = emit_x_z
+    parameters['alpha_x'] = alpha_x_z
+    parameters['beta_x'] = beta_x_z
+    parameters['sigma_x'] = sigma_x_z
+    parameters['energy'] = gammaE_z
+    parameters['energy_spread'] = energySpread_z
+    parameters['s'] = s
+
+    return parameters
+
+
 def save_beam_analysis(beam_number,xi_s,parameters_xi_s,half_thickness):
     if len(xi_s) != len(parameters_xi_s):
         print('The length of the inputs do not match!')
@@ -850,7 +678,7 @@ def get_mean_and_std(x,weights):
     sigma = np.sqrt(np.dot(x**2, weights))
     return (E_X, sigma)
 
-def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None, ylim = None,dir_save = 'Phase_space'):
+def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None, ylim = None,dir_save = 'Phase_space',remove_rate = 0):
     
     if not os.path.isdir(dir_save):
         os.mkdir(dir_save)
@@ -864,15 +692,21 @@ def plot_phase_space(beam_number,xi_s,half_thickness_slice,timeSteps,xlim = None
         filename = '../Beam'+ str(beam_number)+'/Raw/raw_' + str(timeStep).zfill(8) + '.h5'
 
         with h5py.File(filename, "r") as f:
-            dataset_x3 = f['/x3'] 
-            z_all = dataset_x3[...]
-
-            dataset_p1 = f['/p1'] 
-            px_all = dataset_p1[...]
-
+            
             dataset_x1 = f['/x1'] 
             x_all = dataset_x1[...] 
-
+            
+            dataset_p1 = f['/p1'] 
+            px_all = dataset_p1[...]
+            
+            good_idx = remove_outliers(x_all,px_all,remove_rate) # good_idx are indexes of the particles who are not outliers
+            x_all = x_all[good_idx]
+            px_all = px_all[good_idx]
+            
+            dataset_x3 = f['/x3'] 
+            z_all = dataset_x3[...]
+            z_all = z_all[good_idx]
+            
         plt.figure(i)
 
         for xi in xi_s:
