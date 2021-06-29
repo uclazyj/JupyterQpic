@@ -657,7 +657,7 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
 #     return parameters
 
 
-def save_beam_analysis(beam_number,xi_s,parameters_xi_s,half_thickness):
+def save_beam_analysis(beam_number,xi_s,parameters_xi_s,half_thickness,path = '.'):
     if len(xi_s) != len(parameters_xi_s):
         print('The length of the inputs do not match!')
         return
@@ -666,7 +666,7 @@ def save_beam_analysis(beam_number,xi_s,parameters_xi_s,half_thickness):
     dic = {}
     for i in range(len(xi_s)):
         dic[xi_s[i]] = parameters_xi_s[i]
-    filename = 'beam' + str(beam_number) + '_' + str(xi_s).replace(" ","") + '_' + str(half_thickness)
+    filename = path + '/beam' + str(beam_number) + '_' + str(xi_s).replace(" ","") + '_' + str(half_thickness)
     with open(filename,'w') as f:
         json.dump(dic,f,indent=4)
 
