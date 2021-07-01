@@ -305,7 +305,41 @@ def get_lineout(filename,direction,lineout_pos,code = 'QPAD'):
             xi = np.linspace(xi_range[0],xi_range[1],num = len(lineout))
             return xi,lineout
 
+def get_raw_beam_data(filename):
+    
+    f=h5py.File(filename,'r')
+    raw_data = {}
+    
+    dataset_x1 = f['/x1'] 
+    x = dataset_x1[...]
+    raw_data['x'] = x
 
+    dataset_p1 = f['/p1'] 
+    px = dataset_p1[...]
+    raw_data['px'] = px
+
+    dataset_x2 = f['/x2'] 
+    y = dataset_x2[...]
+    raw_data['y'] = y
+
+    dataset_p2 = f['/p2'] 
+    py = dataset_p2[...]
+    raw_data['py'] = py
+
+    dataset_x3 = f['/x3'] 
+    z = dataset_x3[...] 
+    raw_data['z'] = z
+
+    dataset_p3 = f['/p3'] 
+    pz = dataset_p3[...] 
+    raw_data['pz'] = pz
+
+    dataset_q = f['/q']
+    q = dataset_q[...]
+    raw_data['q'] = q
+    
+    return raw_data
+    
 def select_lineout_range(x,lineout,x_min,x_max):
     if x_min < x[0] or x_max > x[-1] or x_min > x_max:
         print('Invalid lineout range!')
