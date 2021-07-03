@@ -155,8 +155,8 @@ def set_matched_beam(idx,epsilon_n,name = 'species',i = 0,uniform = True,path = 
     sigma_m = np.sqrt(beta_m * epsilon)
     sigma_m = sigma_m / np.sqrt(np.sqrt(entrance_density)) # sigma_m^4 * n is a constant (assuming geometric emittance is a constant)
     sigma_p = epsilon_n / sigma_m
-    inputDeck['beam'][idx]['sigma'][0:2] = [sigma_m,sigma_m]
-    inputDeck['beam'][idx]['sigma_v'][0:2] = [sigma_p,sigma_p]
+    inputDeck['beam'][idx]['gauss_sigma'][0:2] = [sigma_m,sigma_m]
+    inputDeck['beam'][idx]['uth'][0:2] = [sigma_p,sigma_p]
     
     ## Write the modified file object into a jason file
     with open(path + '/qpinput.json','w') as outfile:
