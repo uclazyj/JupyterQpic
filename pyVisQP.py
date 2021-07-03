@@ -447,7 +447,17 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
         
         n_non_outlier_particles = len(z)
         inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
+        
+        q = q[inVisualizationRange]
+        
+        px = px[inVisualizationRange]
+        py = py[inVisualizationRange]
+        gammaE = gammaE[inVisualizationRange]
+        
+        x = x[inVisualizationRange]
+        y = y[inVisualizationRange]
         z = z[inVisualizationRange]
+        
         n_in_range_particles = len(z)
         
         if i % 10 == 0:
@@ -455,38 +465,34 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
                   str(round((n_in_range_particles / n_non_outlier_particles * 100),2)) + '% particles (out of ' + \
                   str(n_non_outlier_particles) + ' non-outlier particles. The total number of particles from simulation (including outliers) is:',str(n_all_particles))
         
-        q = q[inVisualizationRange]
+        
         weights = abs(q)
         
-        gammaE = gammaE[inVisualizationRange]
         gammaE_bar, sigma_gammaE = get_mean_and_std(gammaE,weights)
         gammaE_z.append(gammaE_bar)
         energySpread_z.append(sigma_gammaE / gammaE_bar)
 
-        px = px[inVisualizationRange] # extract the part within the data visualization range
         xprime = px / gammaE
-        
         E_xprime, sigma_xprime = get_mean_and_std(xprime,weights)
         xprime = xprime - E_xprime
 
         E_px, sigma_px = get_mean_and_std(px,weights)
         px = px - E_px
-
-        py = py[inVisualizationRange]
-        yprime = py / gammaE
         
+        
+        yprime = py / gammaE
         E_yprime, sigma_yprime = get_mean_and_std(yprime,weights)
         yprime = yprime - E_yprime
         
         E_py, sigma_py = get_mean_and_std(py,weights)
         py = py - E_py
 
-        x = x[inVisualizationRange]
+        
         E_x, sigma_x = get_mean_and_std(x,weights)
         x = x - E_x
         sigma_x_z.append(sigma_x)
 
-        y = y[inVisualizationRange]
+        
         E_y, sigma_y = get_mean_and_std(y,weights)
         y = y - E_y
         sigma_y_z.append(sigma_y)
