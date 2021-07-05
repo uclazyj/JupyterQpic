@@ -239,11 +239,8 @@ def get_matched_beam_parameters(i = 1,name = 'species',idx = 0,path = '..',QPAD 
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     profile = inputDeck['beam'][i]['profile']
     gamma = inputDeck['beam'][i]['gamma']
-    if (QPAD and profile == 3) or ((not QPAD) and profile == 2):
-        epsilon_n = inputDeck['beam'][i]['emittance'][0]
-    else:
-        epsilon_n = inputDeck['beam'][i]['sigma'][0] * inputDeck['beam'][i]['sigma_v'][0]
-    
+
+    epsilon_n = inputDeck['beam'][i]['gauss_sigma'][0] * inputDeck['beam'][i]['uth'][0]
     
     beta_m0 = np.sqrt(2*gamma)
     sigma_m0 = np.sqrt(beta_m0 * epsilon_n / gamma)
