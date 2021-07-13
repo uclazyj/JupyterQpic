@@ -165,32 +165,45 @@ def set_matched_beam(idx,epsilon_n,name = 'species',i = 0,uniform = True,path = 
 
 # This function uses the input parameter N (the total number of electrons in the beam) and the 
 # sigma_x, sigma_y, sigma_z specified in the input file to calculate the beam peak density (normalized to n0), and set it in the input file.
-def set_beam_peak_density(idx,N,path = '..',QPAD = True):
-    with open(path + '/qpinput.json') as f: # This is the old jason input file
+def set_triGaussian_beam_peak_density(idx,N,path = '..'):
+    with open(path + '/qpinput.json') as f: 
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
     n0 = inputDeck['simulation']['n0']
-    profile = inputDeck['beam'][idx]['profile']
-    if (QPAD and profile == 3) or (not QPAD and profile == 2):
-        beta_x,beta_y = inputDeck['beam'][idx]['beta']
-        epsilon_n_x,epsilon_n_y = inputDeck['beam'][idx]['emittance']
-        gamma = inputDeck['beam'][idx]['gamma']
-        sigma_x = np.sqrt(beta_x * epsilon_n_x / gamma)
-        sigma_y = np.sqrt(beta_y * epsilon_n_y / gamma)
-        sigma_z = inputDeck['beam'][idx]['sigmaz']
-    else:
-        sigma_x, sigma_y, sigma_z = inputDeck['beam'][idx]['sigma']
+
+    sigma_x, sigma_y, sigma_z = inputDeck['beam'][idx]['gauss_sigma']
         
     sigma_x = to_phys_unit(sigma_x,'cm',n0)
     sigma_y = to_phys_unit(sigma_y,'cm',n0)
     sigma_z = to_phys_unit(sigma_z,'cm',n0)
     n_peak = N / (2*np.pi)**(3/2) / (sigma_x * sigma_y * sigma_z) / n0
-    inputDeck['beam'][idx]['peak_density'] = n_peak
+    inputDeck['beam'][idx]['density'] = n_peak
     
     ## Write the modified file object into a jason file
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
     
     return n_peak
+
+def set_beam_range(idx,num_sigma = 5,path = '..'):
+    
+    with open(path + '/qpinput.json') as f: 
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+        
+    x0 = inputDeck['beam'][idx]['gauss_center'][0]
+    y0 = inputDeck['beam'][idx]['gauss_center'][1]
+    z0 = inputDeck['beam'][idx]['gauss_center'][2]
+    
+    sigma_x = inputDeck['beam'][idx]['gauss_sigma'][0]
+    sigma_y = inputDeck['beam'][idx]['gauss_sigma'][1]
+    sigma_z = inputDeck['beam'][idx]['gauss_sigma'][2]
+    
+    inputDeck['beam'][idx]['range1'] = [x0 - num_sigma * sigma_x,x0 + num_sigma * sigma_x]
+    inputDeck['beam'][idx]['range2'] = [y0 - num_sigma * sigma_y,y0 + num_sigma * sigma_y]
+    inputDeck['beam'][idx]['range3'] = [z0 - num_sigma * sigma_z,z0 + num_sigma * sigma_z]
+        
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
+    
 
 # This function sets all the ndump in the input file
 def set_ndump(ndump,path = '..'):
@@ -375,10 +388,15 @@ def get_Twiss_in_vacuum(alpha_i,beta_i,z): # alpha_i and beta_i are numbers, s i
     return alpha,beta
     
 
-def set_one_item(type_name,idx,parameter_name,value,path = '..'):
+def set_one_item(value,type_name,idx,parameter_name,i = None,path = '..'):
     with open(path + '/qpinput.json') as f:
         inputDeck = json.load(f,object_pairs_hook=OrderedDict)
-    inputDeck[type_name][idx][parameter_name] = value
+    if i == None:
+        inputDeck[type_name][idx][parameter_name] = value
+    elif type(i) == type(0):
+        inputDeck[type_name][idx][parameter_name][i] = value
+    else:
+        print('Wrong input arguments! Nothing is changed!')
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
     
