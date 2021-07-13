@@ -203,7 +203,22 @@ def set_beam_range(idx,num_sigma = 5,path = '..'):
         
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
-    
+
+def get_beam_n_particles(idx,path = '..'):
+    with open(path + '/qpinput.json') as f: 
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    n_cells_r_total,n_cells_z_total = inputDeck['simulation']['grid']
+    r_length_total = inputDeck['simulation']['box']['r'][1]
+    z_length_total = inputDeck['simulation']['box']['z'][1] - inputDeck['simulation']['box']['z'][0]
+    r_length_beam = inputDeck['beam'][idx]['range1'][1]
+    z_length_beam = inputDeck['beam'][idx]['range3'][1] - inputDeck['beam'][idx]['range3'][0]
+    ppc = inputDeck['beam'][idx]['ppc']
+    ppc = ppc[0] * ppc[1] * ppc[2]
+    n_cells_r_beam = n_cells_r_total / r_length_total * r_length_beam
+    n_cells_z_beam = n_cells_z_total / z_length_total * z_length_beam
+    num_theta = inputDeck['beam'][idx]['num_theta']
+    n_particles_in_beam = ppc * num_theta * n_cells_r_beam * n_cells_z_beam
+    return n_particles_in_beam
 
 # This function sets all the ndump in the input file
 def set_ndump(ndump,path = '..'):
