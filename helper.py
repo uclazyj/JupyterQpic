@@ -469,3 +469,16 @@ def set_slice_idx(center = True,slice_idx=0,path = '..'):
         json.dump(inputDeck,outfile,indent=4)
 
         
+def set_2D_npmax(extra,idx,path='..'):
+    with open(path + '/qpinput.json') as f:
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    ppc = inputDeck['species'][idx]['ppc']
+    num_theta = inputDeck['species'][idx]['num_theta']
+    n_partitions_r = inputDeck['simulation']['nodes'][0]
+    n_cells_r = inputDeck['simulation']['grid'][0]
+    npmax_min = ppc[0] * ppc[1] * num_theta * int(n_cells_r / n_partitions_r)
+    npmax = int(npmax_min * extra)
+    inputDeck['species'][idx]['npmax'] = npmax
+    with open(path + '/qpinput.json','w') as outfile:
+        json.dump(inputDeck,outfile,indent=4)
+    
