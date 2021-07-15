@@ -199,7 +199,10 @@ def set_beam_range(idx,num_sigma = 5,path = '..'):
     
     inputDeck['beam'][idx]['range1'] = [x0 - num_sigma * sigma_x,x0 + num_sigma * sigma_x]
     inputDeck['beam'][idx]['range2'] = [y0 - num_sigma * sigma_y,y0 + num_sigma * sigma_y]
-    inputDeck['beam'][idx]['range3'] = [z0 - num_sigma * sigma_z,z0 + num_sigma * sigma_z]
+    if sigma_z != "none":
+        inputDeck['beam'][idx]['range3'] = [z0 - num_sigma * sigma_z,z0 + num_sigma * sigma_z]
+    else:
+        inputDeck['beam'][idx]['range3'] = inputDeck['beam'][idx]['piecewise_x3']
         
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
@@ -481,4 +484,19 @@ def set_2D_npmax(extra,idx,path='..'):
     inputDeck['species'][idx]['npmax'] = npmax
     with open(path + '/qpinput.json','w') as outfile:
         json.dump(inputDeck,outfile,indent=4)
+
+def GeV_to_gamma(n):
+    return n * 10 ** 9 * e / m / c ** 2
+
+# Assuming beam's transverse profile is Gaussian (both x and y),
+# We have n_peak = I_peak / (2 * pi * e * c * sigma_x * sigma_y)
+def from_Ipeak_to_npeak(I,idx,path = '..'): # I has the unit of kA
+    with open(path + '/qpinput.json') as f:
+        inputDeck = json.load(f,object_pairs_hook=OrderedDict)
+    I *= 1000 # change the unit to A
+    n0 = inputDeck['simulation']['n0']
+    sigma_r = inputDeck['beam'][idx]['gauss_sigma'][0]
+    sigma_r = to_phys_unit(sigma_r,'m',n0)
+    n_peak = I / 2 / np.pi / e / c / sigma_r ** 2
+    return n_peak / (n0 * 10 ** 6)
     
