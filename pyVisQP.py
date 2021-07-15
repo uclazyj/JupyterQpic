@@ -370,7 +370,7 @@ def remove_outliers(x,p,remove_rate):
     idx_remove = idx_remove_x | idx_remove_p
     return np.array([(i not in idx_remove) for i in idx])
 
-def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_thickness = 0.1,QPAD = True,remove_rate = 0):
+def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = None, half_thickness = None, remove_rate = 0):
     
     with open('../qpinput.json') as finput:
         inputDeck = json.load(finput,object_pairs_hook=OrderedDict)
@@ -381,9 +381,6 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
         return
     idx = int(beam_number-1)
     dt = inputDeck['simulation']['dt']
-    
-    zVisualizeMax = zVisualizeCenter + half_thickness
-    zVisualizeMin = zVisualizeCenter - half_thickness
     
     emitn_x_z = []
     emit_x_z = []
@@ -407,8 +404,7 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
         
         timeStep = timeSteps[i]
         timeStep = str(timeStep).zfill(8)
-        temp = "" if QPAD else "000"
-        filename = '../Beam'+ temp + str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
+        filename = '../Beam' + str(beam_number)+'/Raw/raw_' + timeStep + '.h5'
         f=h5py.File(filename,'r')
         
         dataset_x1 = f['/x1'] 
@@ -446,17 +442,23 @@ def analyze_raw_beam_data(timeSteps,beam_number = 2, zVisualizeCenter = 0, half_
             q = q[good_idx]
         
         n_non_outlier_particles = len(z)
-        inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
         
-        q = q[inVisualizationRange]
+        if zVisualizeCenter != None and half_thickness != None:
         
-        px = px[inVisualizationRange]
-        py = py[inVisualizationRange]
-        gammaE = gammaE[inVisualizationRange]
-        
-        x = x[inVisualizationRange]
-        y = y[inVisualizationRange]
-        z = z[inVisualizationRange]
+            zVisualizeMax = zVisualizeCenter + half_thickness
+            zVisualizeMin = zVisualizeCenter - half_thickness
+
+            inVisualizationRange = (z > zVisualizeMin) & (z < zVisualizeMax)
+
+            q = q[inVisualizationRange]
+
+            px = px[inVisualizationRange]
+            py = py[inVisualizationRange]
+            gammaE = gammaE[inVisualizationRange]
+
+            x = x[inVisualizationRange]
+            y = y[inVisualizationRange]
+            z = z[inVisualizationRange]
         
         n_in_range_particles = len(z)
         
